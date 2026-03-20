@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FORJA">
+<meta name="theme-color" content="#0a0a0a">
+<title>FORJA</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--s1:#141414;--s2:#1c1c1c;--bd:#2a2a2a;--tx:#f0ece4;--dm:#8a8680;--ac:#e85d3a;--grn:#4ade80;--yel:#facc15;--blu:#60a5fa}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{font-family:'DM Sans',-apple-system,sans-serif;background:var(--bg);color:var(--tx);height:100%;overflow:hidden;overscroll-behavior:none}
+.app{height:100dvh;display:flex;flex-direction:column}
+.cnt{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 120px;scrollbar-width:none}
+.cnt::-webkit-scrollbar{display:none}
+.nav{display:flex;justify-content:space-around;padding:10px 0 24px;background:var(--s1);border-top:1px solid var(--bd);flex-shrink:0}
+.nb{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--dm);font-size:10px;font-family:inherit;font-weight:500;padding:4px 12px;cursor:pointer}
+.nb.a{color:var(--ac)}
+.hdr{padding:20px 0 8px;position:sticky;top:0;z-index:50;background:var(--bg)}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;background:linear-gradient(135deg,var(--ac),#f4a261);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cd{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:12px}
+.er{background:var(--s2);border-radius:12px;padding:14px;margin-bottom:10px;border-left:3px solid var(--ac)}
+.cl{font-size:11px;color:var(--dm);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px;margin-top:16px}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;background:var(--ac);color:white}
+.btn:active{transform:scale(.97)}
+.sb{padding:6px 12px;font-size:11px;font-family:'DM Sans',sans-serif;background:var(--s1);border:1px solid var(--bd);border-radius:8px;color:var(--tx);cursor:pointer}
+.li{width:60px;padding:7px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-family:inherit;font-size:14px;text-align:center;outline:none}
+.li:focus{border-color:var(--ac)}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:flex-end}
+.ms{background:var(--s1);width:100%;border-radius:20px 20px 0 0;max-height:88vh;overflow-y:auto;padding:20px 16px 40px}
+.ms h3{font-size:14px;color:var(--ac);margin:14px 0 6px;font-weight:600}
+.ms p,.ms li{font-size:13px;line-height:1.6;color:var(--dm)}
+.ms ul{padding-left:18px}
+.ms li{margin-bottom:4px}
+.timer-bar{position:fixed;top:0;left:0;right:0;z-index:200;padding:12px 16px;background:linear-gradient(135deg,#e85d3a,#d04a29);display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.5);cursor:pointer}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+</style>
+</head>
+<body>
+<div id="app" class="app"><div class="cnt" style="display:flex;align-items:center;justify-content:center"><div class="logo" style="font-size:48px;letter-spacing:4px">FORJA</div></div></div>
+<script>
+// ═══════════════════════════════════════════════
+// FORJA v5 — Pure Vanilla JS (no React/Babel)
+// ═══════════════════════════════════════════════
+
+const EX_VIDEOS={leg_press:"nDh_BlnLCGc"};
+
+// Images will be loaded lazily from images.js
+if(!window.EX_IMAGES) window.EX_IMAGES={};
+if(!window.POSTURE_IMAGES) window.POSTURE_IMAGES={};
+
+const POSTURE_VIDEOS={};
+
+const EX={
+  chest_press:{name:"Chest Press",machine:"Nautilus Inspiration",mg:"Chest",pri:"Pectoralis Major",sec:"Anterior Deltoid, Triceps",pos:1,tech:{setup:"Adjust seat so handles align with mid-chest. Feet flat, back pressed into pad. Squeeze shoulder blades together.",exec:"Press forward in smooth arc. Exhale. Don't lock elbows. Squeeze chest 1s at top.",ecc:"Lower 2-3s. Feel chest stretch. Don't let weight stack touch.",cues:["Push world away","Shoulders DOWN and BACK","Elbows ~45 degrees","Last reps most hypertrophic"],err:["Flaring elbows to 90","Arching back off pad","Bouncing weight","Partial ROM"]}},
+  shoulder_press:{name:"Shoulder Press",machine:"Nautilus Inspiration",mg:"Shoulders",pri:"Anterior & Lateral Deltoid",sec:"Triceps, Upper Traps",pos:1,tech:{setup:"Seat so handles at ear level. Feet flat, core braced.",exec:"Press straight UP. Exhale. Don't fully lock out.",ecc:"Lower 2-3s to ear level.",cues:["Press ceiling away","Ribs DOWN","Straight line elbow to elbow"],err:["Excessive lumbar arch","Pressing forward","Shrugging shoulders"]}},
+  pec_fly:{name:"Pec Fly / Rear Delt",machine:"Nautilus Inspiration",mg:"Chest / Rear Delts",pri:"Pec Major / Rear Deltoids",sec:"Anterior Deltoid / Rhomboids",pos:1,tech:{setup:"Pec Fly: arms front. Rear Delt: reverse. Slight elbow bend.",exec:"PEC FLY: hug together, squeeze 2s. REAR DELT: pull back, squeeze blades.",ecc:"Open slowly 2-3s for deep stretch.",cues:["Hug a barrel","Lead with elbows","Rear delt = posture correction"],err:["Too much elbow bend","Rushing","No squeeze at peak"]}},
+  lat_pulldown:{name:"Lat Pulldown",machine:"Cable / MAG Grip",mg:"Back",pri:"Latissimus Dorsi",sec:"Biceps, Rhomboids, Rear Delts",pos:1,tech:{setup:"Lock thigh pad. Grip wider than shoulders. Sit tall, slight lean 15-20 deg.",exec:"Depress shoulder blades first. Drive elbows DOWN and BACK. Pull to upper chest.",ecc:"Extend slowly 2-3s overhead. Full lat stretch.",cues:["Elbows into back pockets","Hands are hooks","Chest up, chin tucked"],err:["Pulling behind neck","Leaning too far back","Using biceps not lats"]}},
+  cybex_pulldown:{name:"Pulldown Machine",machine:"Cybex Eagle NX",mg:"Back",pri:"Latissimus Dorsi",sec:"Biceps, Teres Major",pos:1,tech:{setup:"Adjust thigh pads. Grip handles. Chest up, core engaged.",exec:"Drive elbows toward hips. Squeeze lats 1s. Fixed path = focus.",ecc:"Return slowly 2-3s. Full stretch.",cues:["Elbows to waistband","Depress shoulders first","Mind-muscle focus"],err:["Rounding back","Pulling with arms","Cutting ROM"]}},
+  low_row:{name:"Seated Cable Row",machine:"Cable / MAG Grip",mg:"Back",pri:"Rhomboids, Mid Traps, Lats",sec:"Biceps, Rear Delts",pos:1,tech:{setup:"Feet on plates, slight knee bend. Sit tall, chest up.",exec:"Pull to lower sternum. Elbows STRAIGHT BACK. Squeeze blades HARD 2s.",ecc:"Extend slowly 2-3s. Slight hip hinge. Never round back.",cues:["#1 POSTURE EXERCISE","Crack walnut between blades","Proud chest"],err:["Rounding lower back","Swinging torso","No squeeze"]}},
+  leg_press:{name:"Leg Press",machine:"Nautilus Inspiration",mg:"Legs",pri:"Quadriceps, Glutes",sec:"Hamstrings, Calves",pos:0,tech:{setup:"Back firm against pad. Feet shoulder-width, toes slightly out.",exec:"Push through whole foot. Don't lock knees.",ecc:"Lower 3-4s to ~90 deg. Knees track over toes.",cues:["Push through heels","Lower back on pad","Breathe in down, out up"],err:["Knees caving in","Hips lifting","Locking knees","Bouncing"]}},
+  leg_curl:{name:"Seated Leg Curl",machine:"Nautilus Inspiration",mg:"Legs",pri:"Hamstrings",sec:"Gastrocnemius",pos:0,tech:{setup:"Knees align with pivot. Shin pad above ankles.",exec:"Curl down/back. Squeeze 2s. Dorsiflex feet.",ecc:"Extend slowly 2-3s.",cues:["Dorsiflex = more hamstring","Hips on seat","Seated > lying"],err:["Hips lifting","Momentum","Pointing toes"]}},
+  hip_abduction:{name:"Hip Abduction/Adduction",machine:"Nautilus Inspiration",mg:"Legs / Glutes",pri:"Gluteus Medius, Adductors",sec:"Hip Stabilizers",pos:1,tech:{setup:"Back flat. Pads on outer or inner thighs.",exec:"ABDUCTION: push apart 2s. ADDUCTION: squeeze together 2s.",ecc:"Return slowly 2-3s.",cues:["Back flat on pad","Both directions matter","Focus squeeze"],err:["Leaning forward","Momentum","Skipping adduction"]}},
+  triceps_press:{name:"Triceps Press",machine:"Nautilus Inspiration",mg:"Arms (Triceps)",pri:"Triceps (all 3 heads)",sec:"Anconeus",pos:0,tech:{setup:"Upper arms on pad. Elbows at pivot.",exec:"Press down. Squeeze at full extension 1s. Only forearms move.",ecc:"Bend slowly 2-3s.",cues:["Only forearms move","Elbows pinned","Full lockout"],err:["Moving entire arm","Elbows off pad","Momentum"]}},
+  arm_curl:{name:"Preacher Curl",machine:"Plate-Loaded Station",mg:"Arms (Biceps)",pri:"Biceps Brachii",sec:"Brachialis",pos:0,tech:{setup:"Armpits on pad. Arms on slope. Underhand grip.",exec:"Curl up. Squeeze 1-2s. Wrists straight.",ecc:"Lower 3-4s. No hyperextension.",cues:["Armpits glued","Pinky toward shoulder","Slow negatives = growth"],err:["Elbows off pad","Body swinging","Partial ROM"]}},
+  arm_extension:{name:"Overhead Tricep Extension",machine:"Plate-Loaded Station",mg:"Arms (Triceps)",pri:"Triceps (Long Head)",sec:"Anconeus",pos:0,tech:{setup:"Back against pad. Arms overhead. Elbows at pivot.",exec:"Extend overhead. Squeeze. Long head emphasis.",ecc:"Lower 2-3s for deep stretch.",cues:["Elbows forward","Best long head exercise","Deep stretch = growth"],err:["Flaring elbows","Arching back","Incomplete ROM"]}},
+  incline_db_press:{name:"Incline DB Press",machine:"Adjustable Bench + Dumbbells",mg:"Chest (Upper)",pri:"Pec Major (Clavicular Head)",sec:"Anterior Deltoid, Triceps",pos:0,tech:{setup:"Bench at 30 deg. Kick DBs up. Retract shoulder blades.",exec:"Press up and slightly inward. Deep stretch at bottom.",ecc:"Lower 2-3s past chest for stretch.",cues:["30 deg not 45","Retract blades first","Deep stretch = growth"],err:["Bench too steep","Shoulders forward","Dropping DBs"]}},
+  db_curl:{name:"Dumbbell Curl",machine:"Dumbbells",mg:"Arms (Biceps)",pri:"Biceps Brachii",sec:"Brachialis",pos:0,tech:{setup:"Stand or sit incline. Arms at sides, palms forward.",exec:"Curl. Upper arms stationary. Supinate at top.",ecc:"Lower 3-4s. Full extension.",cues:["Arms GLUED to sides","Supinate at top","3-4s negatives"],err:["Body swinging","Elbows drifting","Short negatives"]}},
+  db_overhead_ext:{name:"DB Overhead Extension",machine:"Dumbbells",mg:"Arms (Triceps)",pri:"Triceps (Long Head)",sec:"Anconeus",pos:0,tech:{setup:"Sit upright. One DB, both hands. Press overhead.",exec:"Lower behind head. Deep stretch. Press up.",ecc:"Lower 2-3s.",cues:["Elbows at ceiling","Upper arms stationary","Deeper = more growth"],err:["Elbows flaring","Arching back","Moving upper arms"]}},
+  db_cuban_press:{name:"Cuban Press",machine:"Dumbbells",mg:"Shoulders (Rotator Cuff)",pri:"Infraspinatus, Teres Minor",sec:"Lateral Deltoid, Upper Traps",pos:1,tech:{setup:"Stand with LIGHT DBs (5-8 lbs). Rotator cuff work.",exec:"3 parts: raise to scarecrow, externally rotate, press overhead. Reverse.",ecc:"Reverse slowly 2s each phase.",cues:["Go LIGHT","External rotation is key","Incredible for posture"],err:["Too heavy","Rushing rotation","Leaning back"]}}
+};
+
+const WO=[
+  {day:"Mon",wk:1,name:"Full Body - Push Focus",ex:[{id:"leg_press",s:3,r:"8-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"chest_press",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"shoulder_press",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"db_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"},{id:"triceps_press",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"}]},
+  {day:"Tue",wk:1,name:"Full Body - Pull Focus",ex:[{id:"lat_pulldown",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_press",s:3,r:"8-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"incline_db_press",s:3,r:"8-10",rst:90,n:"2 left / 2 left / FAILURE"},{id:"hip_abduction",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"cybex_pulldown",s:2,r:"10-12",rst:90,n:"2 left / FAILURE"},{id:"db_overhead_ext",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"},{id:"arm_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"}]},
+  {day:"Wed",wk:1,name:"Full Body - Leg Emphasis",ex:[{id:"leg_press",s:4,r:"6-10",rst:120,n:"3 left / 2 left / 2 left / FAILURE"},{id:"incline_db_press",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"10-12",rst:60,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"hip_abduction",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"arm_curl",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"db_overhead_ext",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"}]},
+  {day:"Thu",wk:1,name:"Full Body - Upper Emphasis",ex:[{id:"shoulder_press",s:3,r:"6-10",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_press",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"lat_pulldown",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"pec_fly",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE. Rear delt!"},{id:"db_cuban_press",s:2,r:"10-12",rst:60,n:"3 left / 2 left. LIGHT!"},{id:"arm_extension",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"db_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"}]},
+  {day:"Fri",wk:1,name:"Full Body - Hypertrophy Pump",ex:[{id:"leg_press",s:3,r:"12-15",rst:90,n:"2 left / 2 left / FAILURE"},{id:"cybex_pulldown",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"incline_db_press",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"db_curl",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"triceps_press",s:2,r:"15-20",rst:45,n:"2 left / FAILURE"}]},
+  {day:"Mon",wk:2,name:"Full Body - Strength + Size",ex:[{id:"incline_db_press",s:3,r:"6-10",rst:120,n:"2 left / 2 left / FAILURE"},{id:"leg_press",s:3,r:"8-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"8-10",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"10-12",rst:60,n:"2 left / 2 left / FAILURE"},{id:"shoulder_press",s:2,r:"10-12",rst:90,n:"2 left / FAILURE"},{id:"arm_curl",s:2,r:"8-12",rst:60,n:"2 left / FAILURE"},{id:"db_overhead_ext",s:2,r:"10-12",rst:60,n:"2 left / FAILURE"}]},
+  {day:"Tue",wk:2,name:"Full Body - Back & Glutes",ex:[{id:"lat_pulldown",s:3,r:"6-10",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_press",s:3,r:"10-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"pec_fly",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"hip_abduction",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"cybex_pulldown",s:2,r:"10-12",rst:90,n:"2 left / FAILURE"},{id:"db_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"},{id:"triceps_press",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"}]},
+  {day:"Wed",wk:2,name:"Full Body - Volume Day",ex:[{id:"leg_press",s:3,r:"10-15",rst:90,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"chest_press",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"db_cuban_press",s:2,r:"10-12",rst:60,n:"3 left / 2 left. LIGHT!"},{id:"arm_extension",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"db_curl",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"}]},
+  {day:"Thu",wk:2,name:"Full Body - Mechanical Tension",ex:[{id:"lat_pulldown",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_press",s:4,r:"6-10",rst:120,n:"3 left / 2 left / 2 left / FAILURE"},{id:"incline_db_press",s:3,r:"8-10",rst:90,n:"2 left / 2 left / FAILURE"},{id:"hip_abduction",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"pec_fly",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"},{id:"arm_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"},{id:"db_overhead_ext",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"}]},
+  {day:"Fri",wk:2,name:"Full Body - Metabolic Finisher",ex:[{id:"leg_press",s:3,r:"15-20",rst:90,n:"2 left / 2 left / FAILURE"},{id:"cybex_pulldown",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"pec_fly",s:3,r:"15-20",rst:45,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"15-20",rst:45,n:"2 left / 2 left / FAILURE"},{id:"db_curl",s:2,r:"15-20",rst:45,n:"2 left / FAILURE"},{id:"arm_extension",s:2,r:"15-20",rst:45,n:"2 left / FAILURE"}]}
+];
+
+const PEX={
+  band_pull_aparts:{name:"Band Pull-Aparts",tech:"Stand holding band at chest height, arms extended. Pull apart squeezing shoulder blades. Arms stay straight. Hold 1s.",cues:["Shoulder blades kiss","Arms straight","Ribs down"]},
+  cat_cow:{name:"Cat-Cow Stretch",tech:"All fours. COW: belly down, chest up 2s. CAT: round back up, tuck chin 2s. Move through each vertebra.",cues:["One vertebra at a time","Breathe in Cow, out Cat","Slow"]},
+  wall_angels:{name:"Wall Angels",tech:"Back flat on wall. Arms goalpost. Slide up keeping everything on wall.",cues:["Everything on wall","Go as high as possible","Fights forward shoulders"]},
+  ytw:{name:"Y-T-W on Incline Bench",tech:"Bench 30-45 deg face down. Y: arms 45 deg up, thumbs up 2s. T: arms to sides 2s. W: elbows back/down 2s.",cues:["Thumbs up for Y/T","W most important","Face down"]},
+  foam_roll:{name:"Thoracic Foam Roll",tech:"Roller across upper back. Hands behind neck, butt on floor. Extend backward 2-3s. Move up one vertebra. Never lower back.",cues:["Butt on floor","One vertebra","Never lower back"]},
+  chin_tucks:{name:"Chin Tucks",tech:"Pull chin straight BACK. Hold 5s. Head stays level. Strengthens deep cervical flexors.",cues:["Head glides back","No tilting","Feel front neck"]},
+  prone_cobra:{name:"Prone Cobra Hold",tech:"Face down, arms at sides. Squeeze glutes, lift chest/hands. Rotate palms out. Hold 15-20s.",cues:["Glutes first","Thumbs to ceiling","Look at floor"]},
+  wall_slides:{name:"Wall Slides",tech:"Face wall. Forearms flat at shoulder height. Slide up keeping contact. Press firmly.",cues:["Forearms pressed in","Serratus anterior","Key posture muscle"]},
+  thoracic_rotation:{name:"Thoracic Rotation",tech:"All fours. Thread hand under other arm. Let shoulder lower. Reverse: reach to ceiling. Keep hips square.",cues:["Hips square","Upper back only","Follow hand with eyes"]}
+};
+
+const WU=[
+  [{id:"band_pull_aparts",s:"2x15"},{id:"cat_cow",s:"1x10"},{id:"wall_angels",s:"2x10"}],
+  [{id:"ytw",s:"2x8"},{id:"foam_roll",s:"1x10"},{id:"chin_tucks",s:"2x12"}],
+  [{id:"band_pull_aparts",s:"2x15"},{id:"prone_cobra",s:"2x20s"},{id:"cat_cow",s:"1x10"}],
+  [{id:"wall_slides",s:"2x10"},{id:"thoracic_rotation",s:"1x10ea"},{id:"chin_tucks",s:"2x12"}],
+  [{id:"band_pull_aparts",s:"2x15"},{id:"ytw",s:"2x8"},{id:"wall_angels",s:"2x10"}]
+];
+
+function getCardio(w){
+  const p=Math.min(Math.floor((w-1)/2),5);
+  return [{t:"Phase 1: Base",d:30,hr:"120-140",i:"Treadmill 3.0-3.5mph 0% or Bike 3-5. Conversation pace."},{t:"Phase 2: Incline",d:30,hr:"125-145",i:"Treadmill 3.2-3.5mph 2-3% or Bike 5-7."},{t:"Phase 3: Speed",d:30,hr:"130-150",i:"Treadmill 3.5-4.0mph 3-4% or jog 5.0mph."},{t:"Phase 4: Sustained",d:32,hr:"135-155",i:"Treadmill 4.0-5.0mph 2-3%. Duration up."},{t:"Phase 5: Sport Prep",d:35,hr:"140-160",i:"25min steady + 4x(30s fast/60s easy)."},{t:"Phase 6: Athletic",d:35,hr:"140-165",i:"20min steady + 6x(30s sprint/90s recovery)."}][p];
+}
+
+const MC={leg_press:"#4ade80",leg_curl:"#4ade80",hip_abduction:"#4ade80",chest_press:"#e85d3a",incline_db_press:"#e85d3a",pec_fly:"#e85d3a",lat_pulldown:"#60a5fa",cybex_pulldown:"#60a5fa",low_row:"#60a5fa",shoulder_press:"#facc15",db_cuban_press:"#facc15",arm_curl:"#c084fc",db_curl:"#c084fc",triceps_press:"#f472b6",arm_extension:"#f472b6",db_overhead_ext:"#f472b6"};
+const ML={leg_press:"LEGS",leg_curl:"LEGS",hip_abduction:"GLUTES",chest_press:"CHEST",incline_db_press:"CHEST",pec_fly:"CHEST",lat_pulldown:"BACK",cybex_pulldown:"BACK",low_row:"BACK",shoulder_press:"SHOULDERS",db_cuban_press:"SHOULDERS",arm_curl:"BICEPS",db_curl:"BICEPS",triceps_press:"TRICEPS",arm_extension:"TRICEPS",db_overhead_ext:"TRICEPS"};
+
+const SK="forja_v6";
+let U,tab="today",selDay=null,logD={},timerSec=0,timerInt=null,weekOff=0,showSci=false;
+
+function ld(){try{return JSON.parse(localStorage.getItem(SK))||{}}catch{return{}}}
+function sv(d){localStorage.setItem(SK,JSON.stringify(d))}
+function init(){const a=ld();if(!a._u)a._u={name:"Juan Jose",logs:{},sess:0,start:new Date().toISOString()};sv(a);U=a._u;const d=new Date().getDay();selDay=d>=1&&d<=5?d-1:0;render()}
+function saveU(){const a=ld();a._u=U;sv(a)}
+
+function getWO(di){if(!U)return null;const bw=Math.floor((Date.now()-new Date(U.start).getTime())/(7*864e5));const w=bw+weekOff;const p=((w%2)+2)%2;return WO[p*5+di]}
+function getWD(){const n=new Date(),dow=n.getDay(),mo=dow===0?-6:1-dow,m=new Date(n);m.setDate(n.getDate()+mo+weekOff*7);const f=new Date(m);f.setDate(m.getDate()+4);const fmt=d=>d.toLocaleDateString("en-US",{month:"short",day:"numeric"});const wn=Math.floor((m.getTime()-new Date(U?U.start:Date.now()).getTime())/(7*864e5))+1;return{ms:fmt(m),fs:fmt(f),wn:Math.max(1,wn),y:m.getFullYear()}}
+
+function getRec(logs,reps,eid){
+  const p=reps.split("-").map(Number),lo=p[0],hi=p[1];
+  const isDB=["incline_db_press","db_curl","db_overhead_ext","db_cuban_press"].includes(eid);
+  const wj=isDB?2.5:5;
+  if(!logs||!logs.length)return{t:"new",m:"First session - pick starting weight",d:"Choose weight for "+lo+" reps with ~2 reps left.",nw:null,nr:null};
+  const last=logs[logs.length-1],lw=last.sets[0]?last.sets[0].w:0;
+  const avg=Math.round(last.sets.reduce((s,x)=>s+x.r,0)/last.sets.length);
+  const allTop=last.sets.every(s=>s.r>=hi);
+  const atW=logs.filter(l=>l.sets[0]&&l.sets[0].w===lw).length;
+  if(logs.length>0&&logs.length%12===0){const dw=Math.round(lw*.6);return{t:"del",m:"DELOAD WEEK",d:"Use "+dw+" lbs (60%). Strategic recovery.",nw:dw,nr:lo+"-"+hi}}
+  if(allTop){const nw=lw+wj;return{t:"inc",m:"INCREASE to "+nw+" lbs",d:"Hit "+hi+" reps all sets! Go up. Reps drop to ~"+lo+", build back up.",nw:nw,nr:lo+"-"+(lo+2)}}
+  if(atW>=3&&!allTop)return{t:"mic",m:"MICRO-PROGRESS",d:atW+" sessions at "+lw+"lbs. Add 1 rep to one set or slow eccentric to 3s.",nw:lw,nr:avg+"->"+(avg+1)};
+  const tgt=Math.min(avg+1,hi);return{t:"mnt",m:"BUILD to "+tgt+" reps",d:"At "+lw+"lbs avg "+avg+" reps. ~"+Math.max(1,hi-avg)+" session(s) to increase.",nw:lw,nr:tgt+"/set"}
+}
+
+function startTimer(sec){clearInterval(timerInt);timerSec=sec;timerInt=setInterval(()=>{timerSec--;if(timerSec<=0){clearInterval(timerInt);timerInt=null;if("vibrate"in navigator)navigator.vibrate([200,100,200])}render()},1000);render()}
+
+function saveSess(){
+  const wo=getWO(selDay);if(!wo)return;
+  const td=new Date().toISOString().split("T")[0];let any=false;
+  wo.ex.forEach(e=>{
+    const sets=[];
+    for(let i=0;i<e.s;i++){const w=parseFloat(logD[e.id+"-"+i+"-w"])||0,r=parseInt(logD[e.id+"-"+i+"-r"])||0;if(w>0&&r>0){sets.push({w,r});any=true}}
+    if(sets.length){if(!U.logs[e.id])U.logs[e.id]=[];U.logs[e.id]=U.logs[e.id].filter(l=>l.date!==td);U.logs[e.id].push({date:td,sets})}
+  });
+  if(any){if(U.lastS!==td){U.sess=(U.sess||0)+1;U.lastS=td}saveU();logD={};document.querySelector(".cnt").scrollTo({top:0,behavior:"smooth"});render()}
+}
+
+function h(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
+function render(){
+  const app=document.getElementById("app");
+  const wo=selDay!==null?getWO(selDay):null;
+  const wk=Math.floor((Date.now()-new Date(U.start).getTime())/(7*864e5))+1;
+  const days=["Mon","Tue","Wed","Thu","Fri"];
+  const ti=new Date().getDay();const todayI=ti>=1&&ti<=5?ti-1:null;
+  const warmup=wo?WU[selDay%5]:[];
+  const cd=getCardio(wk+weekOff);
+  const wd=getWD();
+  
+  let out="";
+  
+  if(tab==="today"){
+    // Header
+    out+=`<div class="hdr"><div class="logo">FORJA</div><div style="font-size:13px;color:var(--dm);margin-top:2px">Welcome, ${h(U.name)}</div></div>`;
+    // Stats
+    if(U.sess>0)out+=`<div style="display:flex;gap:8px;margin-bottom:10px"><div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:700;color:var(--ac)">${U.sess}</span><span style="font-size:9px;color:var(--dm)">sessions</span></div><div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:700;color:var(--tx)">${Object.keys(U.logs).length}</span><span style="font-size:9px;color:var(--dm)">tracked</span></div></div>`;
+    // Week nav
+    const wl=weekOff===0?"This Week":weekOff===1?"Next Week":weekOff===-1?"Last Week":(weekOff>0?"+":"")+weekOff+" weeks";
+    out+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;background:var(--s1);border-radius:12px;padding:8px 12px;border:1px solid var(--bd)"><button onclick="weekOff--;render()" style="background:none;border:none;color:var(--ac);font-size:22px;cursor:pointer;padding:6px 10px">&lt;</button><div style="text-align:center"><div style="font-weight:700;font-size:14px;color:${weekOff===0?"var(--ac)":"var(--tx)"}">${wl}</div><div style="font-size:11px;color:var(--dm)">${wd.ms} - ${wd.fs}, ${wd.y} | Wk ${wd.wn}</div></div><button onclick="weekOff++;render()" style="background:none;border:none;color:var(--ac);font-size:22px;cursor:pointer;padding:6px 10px">&gt;</button></div>`;
+    if(weekOff!==0)out+=`<button onclick="weekOff=0;render()" style="width:100%;padding:8px;margin-bottom:10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--ac);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer">Back to This Week</button>`;
+    // Days
+    out+=`<div style="display:flex;gap:6px;margin-bottom:16px">`;
+    days.forEach((d,i)=>{
+      const sel=selDay===i;const isT=i===todayI&&weekOff===0;
+      out+=`<button onclick="selDay=${i};render()" style="flex:1;padding:10px 0;border-radius:10px;border:1px solid ${sel?"var(--ac)":"var(--bd)"};background:${sel?"var(--ac)":"var(--s2)"};color:${sel?"white":isT?"#ddd":"var(--dm)"};font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;position:relative">${d}${isT?'<div style="position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:'+(sel?"white":"var(--ac)")+'"></div>':""}</button>`;
+    });
+    out+=`</div>`;
+    
+    if(wo){
+      out+=`<div style="font-size:12px;color:var(--dm);margin-bottom:4px">Week ${wo.wk} of 2 | Repeats every 2 weeks</div>`;
+      // Time estimate
+      const lm=wo.ex.reduce((s,e)=>s+e.s*45+(e.s-1)*e.rst+30,0)/60;
+      out+=`<div class="cd"><div style="font-weight:700;font-size:16px">${h(wo.name)}</div><div style="font-size:12px;color:var(--dm);margin-top:2px">2s eccentric | ${wo.ex.length} exercises</div><div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><div style="background:var(--bg);border-radius:8px;padding:5px 10px;font-size:12px"><span style="color:var(--ac);font-weight:700">~${Math.round(5+lm+cd.d)}min</span> total</div><div style="background:var(--bg);border-radius:8px;padding:5px 10px;font-size:12px"><span style="font-weight:600">~${Math.round(5+lm)}min</span> weights</div><div style="background:var(--bg);border-radius:8px;padding:5px 10px;font-size:12px"><span style="color:var(--grn);font-weight:600">${cd.d}min</span> cardio</div></div><div style="font-size:11px;color:var(--dm);margin-top:8px">Order: <span style="color:var(--blu)">Warm-up</span> → <span style="color:var(--ac)">Weights</span> → <span style="color:var(--grn)">Cardio (last)</span></div></div>`;
+      // Warmup
+      out+=`<div class="cl">POSTURE WARM-UP (5 min)</div>`;
+      warmup.forEach(w=>{const pd=PEX[w.id];out+=`<div class="er" style="border-left-color:var(--blu)"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(96,165,250,.15);color:var(--blu)">POSTURE</span><div style="font-weight:600;font-size:14px;margin-top:4px">${pd?h(pd.name):w.id}</div><div style="font-size:12px;color:var(--dm);margin-top:2px">${h(w.s)}</div></div><button class="sb" onclick="showPosture('${w.id}')">HOW-TO</button></div></div>`});
+      // Progress bar
+      const td2=new Date().toISOString().split("T")[0];
+      if(weekOff===0){const done=wo.ex.filter(e=>(U.logs[e.id]||[]).some(l=>l.date===td2)).length;if(done>0)out+=`<div style="background:var(--s1);border-radius:10px;padding:10px 14px;margin:12px 0;border:1px solid var(--bd)"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="font-weight:600">Today</span><span style="color:${done===wo.ex.length?"var(--grn)":"var(--ac)"};font-weight:700">${done}/${wo.ex.length}</span></div><div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;background:${done===wo.ex.length?"var(--grn)":"linear-gradient(90deg,var(--ac),#f4a261)"};border-radius:3px;width:${done/wo.ex.length*100}%;transition:width .5s"></div></div></div>`}
+      // Exercises
+      out+=`<div class="cl">EXERCISES</div>`;
+      wo.ex.forEach((e,i)=>{
+        const d=EX[e.id],logs=U.logs[e.id]||[],rec=getRec(logs,e.r,e.id);
+        const col=rec.t==="inc"?"var(--grn)":rec.t==="del"?"var(--blu)":rec.t==="new"?"var(--ac)":rec.t==="mic"?"#c084fc":"var(--yel)";
+        const bg2=rec.t==="inc"?"rgba(74,222,128,.12)":rec.t==="del"?"rgba(96,165,250,.12)":rec.t==="new"?"rgba(232,93,58,.12)":rec.t==="mic"?"rgba(192,132,252,.12)":"rgba(250,204,21,.12)";
+        const lw=logs.length>0&&logs[logs.length-1].sets[0]?logs[logs.length-1].sets[0].w:"";
+        const tl=logs.find(l=>l.date===td2);const isDone=tl&&tl.sets.length>=e.s;
+        const mc=MC[e.id]||"var(--ac)";
+        
+        out+=`<div class="er" style="border-left-color:${isDone?"var(--grn)":mc};opacity:${isDone?.7:1}">`;
+        out+=`<div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><div style="display:flex;align-items:center;gap:6px"><div style="font-weight:600;font-size:14px">${isDone?"✅ ":""}${i+1}. ${h(d.name)}</div><span style="font-size:9px;font-weight:700;color:${mc};background:${mc}15;padding:1px 6px;border-radius:4px">${ML[e.id]||""}</span></div><div style="font-size:11px;color:var(--dm);margin-top:2px">${h(d.pri)}</div></div><button class="sb" onclick="showModal('${e.id}')">HOW-TO</button></div>`;
+        if(d.pos)out+=`<span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(96,165,250,.12);color:var(--blu);margin-top:4px">POSTURE +</span>`;
+        // Prescription
+        out+=`<div style="display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--bg);border-radius:10px;padding:10px 12px"><div style="flex:1"><div style="font-size:20px;font-weight:700;font-family:'Bebas Neue',sans-serif;color:var(--ac);letter-spacing:1px">${e.s} x ${h(e.r)}</div><div style="font-size:11px;color:var(--dm)">Rest ${e.rst}s</div></div><div style="text-align:right"><div style="font-size:11px;color:var(--dm)">Next Step</div><div style="font-size:16px;font-weight:700;color:${col}">${rec.nw?rec.nw+" lbs":"Set weight"}</div>${rec.nr?`<div style="font-size:10px;color:var(--dm)">${h(String(rec.nr))}</div>`:""}</div></div>`;
+        // Suggestion
+        if(!isDone)out+=`<div style="margin-top:8px;background:${bg2};border-radius:10px;padding:10px 12px"><div style="font-size:12px;font-weight:700;color:${col}">${h(rec.m)} <span style="font-size:10px;color:var(--dm);background:var(--bg);padding:2px 6px;border-radius:4px;margin-left:4px">SUGGESTION</span></div><p style="font-size:11px;color:var(--dm);line-height:1.6;margin-top:6px">${h(rec.d)}</p></div>`;
+        out+=`<div style="font-size:11px;color:var(--dm);margin-top:6px;font-style:italic">${h(e.n)}</div>`;
+        // Logging
+        if(weekOff===0&&!isDone){
+          out+=`<div style="margin-top:10px;border-top:1px solid var(--bd);padding-top:10px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:11px;color:var(--ac);font-weight:600">LOG SETS:</div>${lw?`<button class="sb" style="font-size:10px;padding:3px 8px" onclick="autoFill('${e.id}',${e.s},'${lw}')">Fill ${lw}lbs</button>`:""}</div>`;
+          for(let si=0;si<e.s;si++){
+            const wk=e.id+"-"+si+"-w",rk=e.id+"-"+si+"-r";
+            const isLast=si===e.s-1;
+            out+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:12px;color:${isLast?"var(--ac)":"var(--dm)"};width:28px;font-weight:${isLast?700:500}">${isLast?"MAX":"S"+(si+1)}</span><input class="li" type="number" inputmode="decimal" placeholder="${lw||"lbs"}" value="${logD[wk]||""}" oninput="logD['${wk}']=this.value"><span style="color:var(--dm);font-size:12px">x</span><input class="li" style="width:55px" type="number" inputmode="numeric" placeholder="reps" value="${logD[rk]||""}" oninput="logD['${rk}']=this.value"><button class="sb" style="padding:6px 10px;font-size:10px;color:var(--ac);font-weight:600" onclick="startTimer(${e.rst})">REST</button></div>`;
+          }
+          out+=`</div>`;
+        }
+        if(isDone)out+=`<div style="margin-top:8px;font-size:12px;color:var(--grn);font-weight:600">Logged: ${tl.sets.map(s=>s.w+"x"+s.r).join(", ")}</div>`;
+        out+=`</div>`;
+      });
+      // Save button
+      if(weekOff===0)out+=`<button class="btn" onclick="saveSess()" style="margin:8px 0">SAVE SESSION</button>`;
+      // Cardio
+      out+=`<div class="cl">CARDIO - FINAL STEP</div><div class="cd"><div style="font-weight:600;font-size:14px">${h(cd.t)}</div><div style="font-size:12px;color:var(--dm);margin-top:2px">${cd.d}min | HR ${cd.hr} bpm</div><p style="font-size:12px;color:var(--dm);line-height:1.6;margin-top:8px">${h(cd.i)}</p></div>`;
+      // Science toggle
+      out+=`<button onclick="showSci=!showSci;render()" style="width:100%;background:rgba(232,93,58,.08);border:1px solid rgba(232,93,58,.2);border-radius:${showSci?"14px 14px 0 0":"14px"};padding:12px 16px;margin-bottom:${showSci?"0":"12px"};cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit;color:var(--tx)"><span style="font-weight:600;font-size:13px">Training Guide</span><span style="font-size:12px;color:var(--dm)">${showSci?"Hide":"Show"}</span></button>`;
+      if(showSci)out+=`<div style="background:rgba(232,93,58,.08);border:1px solid rgba(232,93,58,.2);border-top:none;border-radius:0 0 14px 14px;padding:16px;margin-bottom:12px"><p style="font-size:12px;color:var(--dm);line-height:1.7"><strong style="color:var(--tx)">Effort:</strong> Sets 1-2 stop with 2 reps left. Last set = failure.<br><br><strong style="color:var(--tx)">Progression:</strong> Build reps. Hit top of range all sets = increase 5lbs (2.5 DBs). Reps drop, build up.<br><br><strong style="color:var(--tx)">Tempo:</strong> 2-3s eccentric. Count one-thousand-one, one-thousand-two.<br><br><strong style="color:var(--tx)">Deload:</strong> Every 12 sessions, 60% weight.<br><br><strong style="color:var(--blu)">Posture:</strong> Rows + rear delts + warm-ups correct kyphosis in 8-12 weeks.</p></div>`;
+    }
+  } else {
+    // Progress tab
+    const ids=Object.keys(U.logs),ts=Object.values(U.logs).reduce((a,l)=>a+l.reduce((b,e)=>b+e.sets.length,0),0);
+    out+=`<div class="hdr"><div class="logo">PROGRESS</div></div>`;
+    out+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0">`;
+    [[U.sess||0,"Sessions"],[wk,"Week"],[ids.length,"Exercises"],[ts,"Total Sets"]].forEach(([v,l])=>{out+=`<div style="background:var(--s2);border-radius:12px;padding:14px;text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--ac)">${v}</div><div style="font-size:11px;color:var(--dm);margin-top:2px">${l}</div></div>`});
+    out+=`</div><div class="cl">EXERCISE HISTORY</div>`;
+    if(!ids.length)out+=`<div class="cd" style="text-align:center;padding:24px"><p style="color:var(--dm)">Complete your first workout!</p></div>`;
+    else ids.forEach(id=>{
+      const d=EX[id];if(!d)return;const logs=U.logs[id],fw=logs[0].sets[0]?logs[0].sets[0].w:0,lw=logs[logs.length-1].sets[0]?logs[logs.length-1].sets[0].w:0,ch=lw-fw;
+      out+=`<div class="cd"><div style="display:flex;justify-content:space-between"><div><div style="font-weight:600">${h(d.name)}</div><div style="font-size:12px;color:var(--dm)">${logs.length} sessions</div></div><div style="text-align:right"><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${ch>0?"var(--grn)":"var(--dm)"}">${ch>0?"+":""}${ch} lbs</div><div style="font-size:11px;color:var(--dm)">${fw} → ${lw} lbs</div></div></div><div style="height:6px;background:var(--s2);border-radius:3px;margin-top:10px;overflow:hidden"><div style="height:100%;background:linear-gradient(90deg,var(--ac),#f4a261);border-radius:3px;width:${Math.min(100,logs.length/12*100)}%"></div></div><div style="font-size:10px;color:var(--dm);margin-top:4px">${logs.length}/12 until deload</div></div>`;
+    });
+  }
+  
+  // Nav
+  const navH=`<nav class="nav"><button class="nb ${tab==="today"?"a":""}" onclick="tab='today';render()"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Workout</button><button class="nb ${tab==="progress"?"a":""}" onclick="tab='progress';render()"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>Progress</button></nav>`;
+  
+  // Timer
+  let timerH="";
+  if(timerInt&&timerSec>0)timerH=`<div class="timer-bar" onclick="clearInterval(timerInt);timerInt=null;timerSec=0;render()"><span style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:white;letter-spacing:3px">${Math.floor(timerSec/60)}:${String(timerSec%60).padStart(2,"0")}</span><span style="font-size:12px;color:rgba(255,255,255,.7)">REST - tap to dismiss</span></div>`;
+  
+  app.innerHTML=`<div class="cnt" id="scroll">${out}</div>${navH}${timerH}`;
+}
+
+// Modal functions
+function showModal(id){
+  const d=EX[id],t=d.tech;
+  const img=EX_IMAGES[id];const vid=EX_VIDEOS[id];
+  let c=`<div class="mo" onclick="this.remove()"><div class="ms" onclick="event.stopPropagation()"><div style="width:36px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 16px"></div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px">${h(d.name)}</div><div style="font-size:12px;color:var(--dm)">${h(d.machine)}</div>`;
+  if(d.pos)c+=`<span style="display:inline-block;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(96,165,250,.15);color:var(--blu);margin-top:6px">HELPS POSTURE</span>`;
+  if(img)c+=`<div style="margin-top:14px;border-radius:12px;overflow:hidden"><img src="${img}" style="width:100%;display:block;border-radius:12px" onerror="this.style.display='none'"></div>`;
+  if(vid)c+=`<div style="margin-top:10px"><a href="https://www.youtube.com/shorts/${vid}" target="_blank" rel="noopener noreferrer" style="display:block;position:relative;border-radius:12px;overflow:hidden;background:#000;text-decoration:none"><img src="https://img.youtube.com/vi/${vid}/hqdefault.jpg" style="width:100%;display:block;border-radius:12px"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3)"><div style="width:60px;height:60px;border-radius:50%;background:rgba(232,93,58,.9);display:flex;align-items:center;justify-content:center"><div style="width:0;height:0;border-top:12px solid transparent;border-bottom:12px solid transparent;border-left:20px solid white;margin-left:4px"></div></div></div></a><div style="font-size:11px;color:var(--ac);text-align:center;margin-top:6px;font-weight:600">▶ Tap to watch</div></div>`;
+  c+=`<h3>SETUP</h3><p>${h(t.setup)}</p><h3>EXECUTION</h3><p>${h(t.exec)}</p><h3>ECCENTRIC (2-3s)</h3><p>${h(t.ecc)}</p><h3>MENTAL CUES</h3><ul>${t.cues.map(x=>"<li>"+h(x)+"</li>").join("")}</ul><h3>AVOID</h3><ul>${t.err.map(x=>"<li>"+h(x)+"</li>").join("")}</ul><h3>MUSCLES</h3><p><strong style="color:var(--tx)">Primary:</strong> ${h(d.pri)}</p><p><strong style="color:var(--tx)">Secondary:</strong> ${h(d.sec)}</p><button class="btn" style="margin-top:20px" onclick="this.closest('.mo').remove()">GOT IT</button></div></div>`;
+  document.body.insertAdjacentHTML("beforeend",c);
+}
+
+function showPosture(id){
+  const pd=PEX[id];if(!pd)return;const img=POSTURE_IMAGES[id];
+  let c=`<div class="mo" onclick="this.remove()"><div class="ms" onclick="event.stopPropagation()"><div style="width:36px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 16px"></div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px">${h(pd.name)}</div><span style="display:inline-block;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(96,165,250,.15);color:var(--blu);margin-top:6px">POSTURE</span>`;
+  if(img)c+=`<div style="margin-top:14px;border-radius:12px;overflow:hidden"><img src="${img}" style="width:100%;display:block;border-radius:12px" onerror="this.style.display='none'"></div>`;
+  c+=`<h3 style="color:var(--blu)">HOW TO PERFORM</h3><p>${h(pd.tech)}</p><h3 style="color:var(--blu)">KEY CUES</h3><ul>${pd.cues.map(x=>"<li>"+h(x)+"</li>").join("")}</ul><button class="btn" style="margin-top:20px;background:var(--blu)" onclick="this.closest('.mo').remove()">GOT IT</button></div></div>`;
+  document.body.insertAdjacentHTML("beforeend",c);
+}
+
+function autoFill(id,sets,w){for(let i=0;i<sets;i++)logD[id+"-"+i+"-w"]=w;render()}
+
+init();
+
+// Lazy-load images.js AFTER app is interactive
+(function(){
+  var s=document.createElement('script');
+  s.src='images.js';
+  s.async=true;
+  s.onload=function(){render()};  // re-render to show images
+  s.onerror=function(){console.log('images.js not found — running without images')};
+  document.body.appendChild(s);
+})();
+</script>
+</body>
+</html>
