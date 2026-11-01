@@ -181,6 +181,8 @@ input[type=number]{-moz-appearance:textfield}
 .vdur{position:absolute;right:5px;bottom:5px;font-size:11px;font-weight:700;color:#fff;background:rgba(0,0,0,.75);padding:1px 5px;border-radius:5px}
 .vmeta b{display:block;font-size:14px;color:var(--ac)}
 .vmeta small{display:block;font-size:12px;color:var(--dm);margin-top:3px}
+.svd{font-size:11px;font-weight:700;color:var(--grn);margin-top:6px}
+.svd:empty{display:none}
 .calh:empty{display:none}
 .cal{margin:0 0 9px 42px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--c) 8%,#fff);border:1px solid color-mix(in srgb,var(--c) 28%,transparent)}
 .cal b{display:block;font-size:13px;font-weight:800;color:var(--c)}
@@ -470,38 +472,53 @@ function getRec(logs,reps,eid){
 // A log entry belongs to a planned day ("day") and is dated when you did it ("date")
 function logFor(sid,dk){return (U.logs[sid]||[]).find(l=>(l.day||l.date)===dk)}
 
-function saveSess(){
-  const wo=getWO(selDay);if(!wo)return;
-  const td=today(),dk=dayKey(selDay,0);let any=false,isNew=false;const summary=[],prs=[],noW=[],badW=[];
-  // check first: a set with reps but no usable weight must never vanish silently
-  wo.ex.forEach(e=>{const sid=effId(dk,e.id);for(let i=0;i<e.s;i++){const r=parseInt(logD[sid+"-"+i+"-r"])||0,raw=logD[sid+"-"+i+"-w"],w=num(raw);if(r>0&&(raw==null||String(raw).trim()===""))noW.push(EX[sid].name+" set "+(i+1));else if(r>0&&(isNaN(w)||w<0))badW.push(EX[sid].name+" set "+(i+1)+' ("'+raw+'")')}});
-  if(noW.length||badW.length){alert((noW.length?"Add a weight for: "+noW.join(", ")+". (Use 0 for bodyweight.)\n":"")+(badW.length?"Fix the weight for: "+badW.join(", "):"")+"\n\nNothing was saved yet.");return}
-  wo.ex.forEach(e=>{
-    const sid=effId(dk,e.id),sets=[];
-    const prev=logFor(sid,dk);
-    for(let i=0;i<e.s;i++){const w=num(logD[sid+"-"+i+"-w"]),r=parseInt(logD[sid+"-"+i+"-r"])||0,q=logD[sid+"-"+i+"-q"];if(w>=0&&r>0)sets.push(q!==undefined?{w,r,q}:{w,r})}
-    if(sets.length){
-      any=true;if(!prev)isNew=true;if(!U.logs[sid])U.logs[sid]=[];
-      U.logs[sid]=U.logs[sid].filter(l=>(l.day||l.date)!==dk);
-      const entry={date:prev?prev.date:td,day:dk,sets};if(wo.blk&&wo.blk.dl)entry.dl=true;if(prev&&prev.fb)entry.fb=prev.fb;
-      // PR = best estimated strength (e1RM) or heaviest weight ever, vs. all earlier sessions
-      const hist=U.logs[sid];if(hist.length){const pe=Math.max(...hist.flatMap(l=>l.sets.map(x=>e1rm(x.w,x.r)))),pw=Math.max(...hist.flatMap(l=>l.sets.map(x=>x.w)));
-        const bs=sets.reduce((a,x)=>e1rm(x.w,x.r)>e1rm(a.w,a.r)?x:a),ne=e1rm(bs.w,bs.r),nw=Math.max(...sets.map(x=>x.w));
-        if(ne>pe+.5||nw>pw){entry.pr=true;prs.push({name:EX[sid].name,txt:nw>pw?`Heaviest ever: ${nw} lbs`:`${bs.w}×${bs.r} — est. 1RM ${Math.round(ne)} lbs (was ${Math.round(pe)})`})}}
-      U.logs[sid].push(entry);U.logs[sid].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
-      delete editing[dk+"|"+sid];
-      for(let i=0;i<12;i++){delete logD[sid+"-"+i+"-w"];delete logD[sid+"-"+i+"-r"];delete logD[sid+"-"+i+"-q"];if(logD.__t)delete logD.__t[sid+"-"+i+"-w"]}
-    }
-    const f=logFor(sid,dk);
-    summary.push({name:EX[sid].name,sets:f?f.sets:null,plan:e.s,partial:f&&f.sets.length<e.s});
-  });
-  if(!any){alert("Nothing to save yet — enter reps for at least one set (weight is pre-filled).");return}
-  if(isNew&&U.lastS!==td){U.sess=(U.sess||0)+1;U.lastS=td}
-  saveU();saveDraftNow();render();document.getElementById('scroll').scrollTo({top:0,behavior:'smooth'});showSaved(summary,prs);
+// ── Auto-save: every set is written to your log as soon as you enter it ──
+let PLAN={},asT={};
+function draftReps(sid,D){D=D||logD;for(let i=0;i<12;i++)if(parseInt(D[sid+"-"+i+"-r"])>0)return true;return false}
+function clearDraft(sid,dk){const D=DR[dk]||{};for(let i=0;i<12;i++){delete D[sid+"-"+i+"-w"];delete D[sid+"-"+i+"-r"];delete D[sid+"-"+i+"-q"];if(D.__t)delete D.__t[sid+"-"+i+"-w"]}delete editing[dk+"|"+sid]}
+// leaving the app (home button, app switcher, lock, reload): save every open set right now
+function flushAll(){try{Object.keys(PLAN).forEach(sid=>autoSave(sid,false,true));saveDraftNow()}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flushAll()});
+window.addEventListener("pagehide",flushAll);
+function autoSoon(sid){clearTimeout(asT[sid]);asT[sid]=setTimeout(()=>autoSave(sid),1500)}
+// returns {sets, miss} where miss = set numbers that have reps but no usable weight
+function readSets(sid,n,D){D=D||logD;const sets=[],miss=[];for(let i=0;i<n;i++){const r=parseInt(D[sid+"-"+i+"-r"])||0;if(!r)continue;const raw=D[sid+"-"+i+"-w"],w=num(raw),q=D[sid+"-"+i+"-q"];if(raw==null||String(raw).trim()===""||isNaN(w)||w<0){miss.push(i+1);continue}sets.push(q!==undefined?{w,r,q}:{w,r})}return{sets,miss}}
+function autoSave(sid,finish,stay){ // stay = save but keep the card open (tap-out between boxes)
+  clearTimeout(asT[sid]);const pl=PLAN[sid];if(!pl)return null;const dk=pl.dk,D=DR[dk]||{};
+  const {sets,miss}=readSets(sid,pl.n,D),prev=logFor(sid,dk);
+  if(sets.length){
+    if(!U.logs[sid])U.logs[sid]=[];
+    const others=U.logs[sid].filter(l=>l!==prev);
+    const entry={date:prev?prev.date:today(),day:dk,sets};if(pl.dl)entry.dl=true;if(prev&&prev.fb)entry.fb=prev.fb;
+    // PR = best estimated strength (e1RM) or heaviest weight ever, vs. every other session
+    if(others.length){const pe=Math.max(...others.flatMap(l=>l.sets.map(x=>e1rm(x.w,x.r)))),pw=Math.max(...others.flatMap(l=>l.sets.map(x=>x.w)));
+      const bs=sets.reduce((a,x)=>e1rm(x.w,x.r)>e1rm(a.w,a.r)?x:a),ne=e1rm(bs.w,bs.r),nw=Math.max(...sets.map(x=>x.w));
+      if(ne>pe+.5||nw>pw){entry.pr=true;entry.prt=nw>pw?`Heaviest ever: ${nw} lbs`:`${bs.w}×${bs.r} — est. 1RM ${Math.round(ne)} lbs (was ${Math.round(pe)})`;if(!(prev&&prev.pr))toast("🏆 New PR — "+EX[sid].name)}}
+    U.logs[sid]=others.concat(entry).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+    if(!prev&&U.lastS!==today()){U.sess=(U.sess||0)+1;U.lastS=today()}
+    saveU();
+  }
+  const done=sets.length&&!miss.length&&(finish||(sets.length>=pl.n&&!stay&&!editing[dk+"|"+sid]));
+  if(done){clearDraft(sid,dk);saveDraftNow();if(!finish)render();return sets}
+  // partial: update the card in place (no re-render, so the keyboard stays open)
+  const b=document.getElementById("sv-"+sid);if(b)b.innerHTML=miss.length?`<span style="color:var(--ac)">⚠ Set ${miss.join(", ")} needs a weight (0 = bodyweight)</span>`:sets.length?`✓ Saved · ${sets.length}/${pl.n} sets`:"";
+  const sw=document.getElementById("swb-"+sid);if(sw&&sets.length)sw.remove();
+  const ix=document.getElementById("ix-"+sid);if(ix&&sets.length){ix.innerHTML=IC.check;ix.style.background="rgba(74,222,128,.15)";ix.style.color="var(--grn)"}
+  saveDraft();return sets.length?sets:null;
+}
+function saveSess(){ // "Finish workout": flush every open exercise, then show the summary
+  const wo=getWO(selDay);if(!wo)return;const dk=dayKey(selDay,0),noW=[];
+  Object.keys(PLAN).forEach(sid=>{const {miss}=readSets(sid,PLAN[sid].n,DR[dk]||{});miss.forEach(m=>noW.push(EX[sid].name+" set "+m))});
+  if(noW.length){alert("Add a weight for: "+noW.join(", ")+". (Use 0 for bodyweight.)\n\nEverything else is already saved.");return}
+  Object.keys(PLAN).forEach(sid=>autoSave(sid,true));saveDraftNow();
+  const summary=[],prs=[];
+  wo.ex.forEach(e=>{const sid=effId(dk,e.id),f=logFor(sid,dk);summary.push({name:EX[sid].name,sets:f?f.sets:null,plan:e.s,partial:f&&f.sets.length<e.s});if(f&&f.pr&&f.date===today())prs.push({name:EX[sid].name,txt:f.prt||"New best"})});
+  if(!summary.some(x=>x.sets)){alert("Nothing logged yet — enter reps for at least one set (weight is pre-filled).");return}
+  render();document.getElementById('scroll').scrollTo({top:0,behavior:'smooth'});showSaved(summary,prs);
 }
 function setFb(sid,dk,v){const l=logFor(sid,dk);if(!l)return;l.fb=l.fb===v?undefined:v;saveU();render()}
 function editEx(sid,dk){const D=DR[dk]||(DR[dk]={}),l=logFor(sid,dk);for(let i=0;i<12;i++){delete D[sid+"-"+i+"-w"];delete D[sid+"-"+i+"-r"];delete D[sid+"-"+i+"-q"]}if(l)l.sets.forEach((s,i)=>{D[sid+"-"+i+"-w"]=String(s.w);D[sid+"-"+i+"-r"]=String(s.r);(D.__t=D.__t||{})[sid+"-"+i+"-w"]=1;if(s.q!=null)D[sid+"-"+i+"-q"]=s.q});editing[dk+"|"+sid]=true;saveDraftNow();render()}
-function cancelEdit(sid,dk){const D=DR[dk]||{};for(let i=0;i<12;i++){delete D[sid+"-"+i+"-w"];delete D[sid+"-"+i+"-r"];delete D[sid+"-"+i+"-q"]}delete editing[dk+"|"+sid];saveDraftNow();render()}
+function cancelEdit(sid,dk){autoSave(sid,true);clearDraft(sid,dk);saveDraftNow();render()}
 
 function num(v){if(v==null)return NaN;v=String(v).trim().replace(",",".");return v===""?NaN:Number(v)}
 function h(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
@@ -592,7 +609,7 @@ function setSwap(dk,id,alt){if(alt===id)delete U.swaps[swapKey(dk,id)];else U.sw
 function showSaved(sm,prs){
   const n=sm.filter(x=>x.sets).length;prs=prs||[];
   let c=prs.length?`<div class="pr"><div class="tro">🏆</div><div class="ttl" style="text-align:center">${prs.length>1?prs.length+" new PRs!":"New PR!"}</div>${prs.map(x=>`<div class="prrow"><b>${h(x.name)}</b><span class="num">${h(x.txt)}</span></div>`).join("")}</div>`:"";
-  c+=`<div class="ck"${prs.length?' style="display:none"':""}><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div><div class="ttl" style="text-align:center${prs.length?";font-size:20px;margin-top:14px":""}">Session saved</div><p style="text-align:center;margin:4px 0 12px">${n} of ${sm.length} exercises logged for this day</p>`;
+  c+=`<div class="ck"${prs.length?' style="display:none"':""}><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div><div class="ttl" style="text-align:center${prs.length?";font-size:20px;margin-top:14px":""}">Workout saved</div><p style="text-align:center;margin:4px 0 12px">${n} of ${sm.length} exercises logged for this day</p>`;
   sm.forEach(x=>{c+=`<div class="sumrow"><span>${x.sets?"✅":"⬜"} ${h(x.name)}</span><span class="num" style="color:${x.sets?(x.partial?"var(--yel)":"var(--grn)"):"var(--dm2)"};text-align:right;font-weight:600">${x.sets?x.sets.map(s=>s.w+"×"+s.r).join(", ")+(x.partial?` (${x.sets.length}/${x.plan})`:""):"not logged"}</span></div>`});
   c+=`<p style="margin-top:12px;font-size:13px">Tip: tap <strong style="color:var(--tx)">Felt</strong> on each exercise so the next suggestion adapts.</p><button class="btn ok" style="margin-top:16px" onclick="closeSheet(this)">Done</button>`;
   openSheet(c);
@@ -648,7 +665,9 @@ function loadDrafts(){try{DR=JSON.parse(localStorage.getItem(DK))||{}}catch(e){D
   Object.keys(DR).forEach(d=>{if(!/^\d{4}-\d\d-\d\d$/.test(d)||daysBetween(d,t)>10){delete DR[d];return}const o=DR[d],tc=o.__t||{};
     Object.keys(o).forEach(k=>{if(k.endsWith("-w")&&!tc[k]&&!(parseInt(o[k.slice(0,-2)+"-r"])>0))delete o[k]})})} // drop stale pre-filled weights
 function saveDraftNow(){clearTimeout(drT);try{localStorage.setItem(DK,JSON.stringify(DR))}catch(e){}}
-function saveDraft(){clearTimeout(drT);drT=setTimeout(saveDraftNow,300)}
+function saveDraft(){saveDraftNow()} // write immediately: iOS can close a backgrounded app at any moment
+// typing a weight fills the empty weight boxes below it (handy on a brand-new exercise)
+function cascadeW(sid,si){const v=logD[sid+"-"+si+"-w"];if(!PLAN[sid])return;for(let j=si+1;j<PLAN[sid].n;j++){const k=sid+"-"+j+"-w",el=document.getElementById("w-"+sid+"-"+j);if(parseInt(logD[sid+"-"+j+"-r"])>0||(logD.__t&&logD.__t[k]))continue;logD[k]=v;if(el)el.value=v}}
 function touchW(k){(logD.__t=logD.__t||{})[k]=1}
 function calSets(sid){const c=CAL[sid],out=[];for(let j=0;j<c.n;j++){const w=num(logD[sid+"-"+j+"-w"])||0,r=parseInt(logD[sid+"-"+j+"-r"])||0;if(w>0&&r>0){const q=logD[sid+"-"+j+"-q"];out.push(q!==undefined?{j,w,r,q}:{j,w,r})}}return out}
 function calHint(sid,si){
@@ -675,7 +694,7 @@ function calHint(sid,si){
 }
 function calApply(sid,si,nw){for(let j=si+1;j<CAL[sid].n;j++){if(parseInt(logD[sid+"-"+j+"-r"])>0)continue;logD[sid+"-"+j+"-w"]=String(nw);touchW(sid+"-"+j+"-w");const i=document.getElementById("w-"+sid+"-"+j);if(i)i.value=nw}calAll(sid);saveDraft()}
 function rirLbl(q){return q===undefined?"left?":q>=3?"3+ left":q+" left"}
-function cycRir(sid,si){const k=sid+"-"+si+"-q",o=logD[k],nx=o===undefined?0:o>=3?undefined:o+1;if(nx===undefined)delete logD[k];else logD[k]=nx;const b=document.getElementById("q-"+sid+"-"+si);if(b){b.textContent=rirLbl(nx);b.classList.toggle("on",nx!==undefined)}calSoon(sid)}
+function cycRir(sid,si){const k=sid+"-"+si+"-q",o=logD[k],nx=o===undefined?0:o>=3?undefined:o+1;if(nx===undefined)delete logD[k];else logD[k]=nx;if(parseInt(logD[sid+"-"+si+"-r"])>0)autoSoon(sid);const b=document.getElementById("q-"+sid+"-"+si);if(b){b.textContent=rirLbl(nx);b.classList.toggle("on",nx!==undefined)}calSoon(sid)}
 function ha(s){return h(s).replace(/"/g,"&quot;")}
 function setSeat(id,v){v=v.trim();if(v)U.seat[id]=v;else delete U.seat[id];saveU()}
 function calAll(sid){if(CAL[sid])for(let j=0;j<CAL[sid].n;j++)calHint(sid,j)}
@@ -694,7 +713,7 @@ function render(){
   const wd=getWD();
   const dk=dayKey(selDay,weekOff),canLog=weekOff===0;
   logD=DR[dk]||(DR[dk]={});
-  let out="";CAL={};
+  let out="";CAL={};PLAN={};
 
   if(tab==="today"){
     out+=`<header class="hdr"><div><div class="logo">GYM</div><div class="sub">Welcome back, ${h(U.name.split(" ")[0])}</div></div><div class="chips">${U.sess>0?`<div class="chip"><b class="num" style="color:var(--ac)">${U.sess}</b><span>Sessions</span></div><div class="chip"><b class="num">${Object.keys(U.logs).length}</b><span>Tracked</span></div>`:""}<button class="chip gear" onclick="showSettings()" aria-label="Settings">${IC.gear}</button></div></header>`;
@@ -725,7 +744,7 @@ function render(){
       wo.ex.forEach((e,i)=>{
         const sid=effId(dk,e.id),swapped=sid!==e.id;
         const d=EX[sid],logs=U.logs[sid]||[];
-        const tl=logFor(sid,dk);const isDone=!!tl&&!editing[dk+"|"+sid];
+        const tl=logFor(sid,dk);const isDone=!!tl&&!editing[dk+"|"+sid]&&!(canLog&&draftReps(sid));
         const prior=logs.filter(l=>l!==tl);let rec=getRec(isDone?logs:prior,e.r,sid);
         if(wo.blk&&wo.blk.dl&&!isDone&&rec.nw){const st=incOf(sid),dw=Math.max(st,Math.floor(rec.nw*.9/st)*st);rec={t:"del",m:"DELOAD WEEK — "+dw+" lbs",d:"Easy week: half the sets at ~90% weight, stopping 3–4 reps short. No failure. This lets fatigue drop so the next block starts strong.",nw:dw,nr:"easy reps"}}
         const col=REC_COL[rec.t]||"var(--yel)";
@@ -733,7 +752,7 @@ function render(){
         const sugW=rec.nw||lastW||"";
         const mc=MC[sid]||"#e0532f";
 
-        out+=`<article class="ex${isDone?" done":""}"><div class="ex-h"><div class="idx" style="${isDone?"background:rgba(74,222,128,.15);color:var(--grn)":`background:${tint(mc)};color:${mc}`}">${isDone?IC.check:i+1}</div><div class="ex-t"><h3>${h(d.name)}</h3><div class="p">${h(d.pri)}</div><div class="tags"><span class="pill" style="color:${mc};background:${tint(mc,"1c")}">${ML[sid]||""}</span>${d.pos?`<span class="pill" style="color:var(--blu);background:rgba(96,165,250,.12)">POSTURE +</span>`:""}</div>${swapped?`<div class="swapped">↔ Swapped for ${h(EX[e.id].name)}</div>`:""}</div><div class="acts">${ALT[e.id]&&!isDone&&weekOff>=0?`<button class="sb" onclick="showSwap('${dk}','${e.id}',${selDay})">${IC.swap}Swap</button>`:""}<button class="sb" onclick="showModal('${sid}')">${IC.info}How-to</button></div></div>`;
+        out+=`<article class="ex${isDone?" done":""}"><div class="ex-h"><div class="idx" id="ix-${sid}" style="${tl?"background:rgba(74,222,128,.15);color:var(--grn)":`background:${tint(mc)};color:${mc}`}">${tl?IC.check:i+1}</div><div class="ex-t"><h3>${h(d.name)}</h3><div class="p">${h(d.pri)}</div><div class="tags"><span class="pill" style="color:${mc};background:${tint(mc,"1c")}">${ML[sid]||""}</span>${d.pos?`<span class="pill" style="color:var(--blu);background:rgba(96,165,250,.12)">POSTURE +</span>`:""}</div>${swapped?`<div class="swapped">↔ Swapped for ${h(EX[e.id].name)}</div>`:""}${!isDone&&canLog?`<div class="svd" id="sv-${sid}">${tl?`✓ Saved · ${tl.sets.length}/${e.s} sets`:""}</div>`:""}</div><div class="acts">${ALT[e.id]&&!tl&&weekOff>=0?`<button class="sb" id="swb-${sid}" onclick="showSwap('${dk}','${e.id}',${selDay})">${IC.swap}Swap</button>`:""}<button class="sb" onclick="showModal('${sid}')">${IC.info}How-to</button></div></div>`;
         if(d.mode){const nx=wo.ex[i+1],pv=wo.ex[i-1],nd=nx&&EX[effId(dk,nx.id)],pvd=pv&&EX[effId(dk,pv.id)];
           out+=`<div class="mode"><b>⚙ Machine setting</b><span>${h(d.mode)}</span>${nd&&nd.mach===d.mach?`<em>Both today → next exercise uses this same machine in ${h(nd.name.toUpperCase())} mode. Keep your seat, just switch the setting.</em>`:pvd&&pvd.mach===d.mach?`<em>Same machine as the previous exercise — switch it to this setting.</em>`:""}</div>`}
         if(!isDone||U.seat[sid])out+=`<label class="seat"><span>${IC.pin}</span><input type="text" enterkeyhint="done" autocomplete="off" placeholder="${/Dumbbells|Bench/.test(d.machine)&&!/Nautilus|Cybex|Cable|Plate/.test(d.machine)?"Bench angle / notes (e.g. 30°)":"Your settings (e.g. seat 4, pad 2)"}" value="${ha(U.seat[sid]||"")}" onchange="setSeat('${sid}',this.value)"${isDone?" readonly":""}></label>`;
@@ -741,14 +760,14 @@ function render(){
         if(!isDone)out+=`<div class="tip"><i style="background:${col};box-shadow:0 0 10px ${col}"></i><div><b style="color:${col}">${h(rec.m)}</b><p>${h(rec.d)}</p></div></div>`;
         out+=`<div class="note">${h(e.n)}</div>`;
         if(canLog&&!isDone){
-          if(!(wo.blk&&wo.blk.dl))CAL[sid]={n:e.s,r:e.r};out+=`<div class="log"><div class="log-h">Log sets <span>· tap “left?” for reps you had left</span></div>`;
+          PLAN[sid]={n:e.s,dk,dl:!!(wo.blk&&wo.blk.dl)};if(!(wo.blk&&wo.blk.dl))CAL[sid]={n:e.s,r:e.r};out+=`<div class="log"><div class="log-h">Log sets <span>· each set saves automatically</span></div>`;
           for(let si=0;si<e.s;si++){
             const wk2=sid+"-"+si+"-w",rk=sid+"-"+si+"-r";
             if(logD[wk2]===undefined&&sugW!=="")logD[wk2]=String(sugW);
             const isLast=si===e.s-1;
-            out+=`<div class="set"><span class="s${isLast?" max":""}">${isLast?"MAX":"SET "+(si+1)}</span><input class="li" id="w-${sid}-${si}" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="lbs" aria-label="Set ${si+1} weight" value="${logD[wk2]||""}" oninput="logD['${wk2}']=this.value;touchW('${wk2}');calSoon('${sid}')"><span class="x">×</span><input class="li" style="width:62px" type="number" inputmode="numeric" enterkeyhint="done" placeholder="reps" aria-label="Set ${si+1} reps" value="${logD[rk]||""}" oninput="logD['${rk}']=this.value;calSoon('${sid}')"><button class="rir${logD[sid+"-"+si+"-q"]!==undefined?" on":""}" id="q-${sid}-${si}" onclick="cycRir('${sid}',${si})" aria-label="Reps left in the tank">${rirLbl(logD[sid+"-"+si+"-q"])}</button><button class="rest" onclick="startTimer(${e.rst})" aria-label="Start ${e.rst}s rest">${IC.timer}</button></div><div class="calh" id="h-${sid}-${si}"></div>`;
+            out+=`<div class="set"><span class="s${isLast?" max":""}">${isLast?"MAX":"SET "+(si+1)}</span><input class="li" id="w-${sid}-${si}" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="lbs" aria-label="Set ${si+1} weight" value="${logD[wk2]||""}" oninput="logD['${wk2}']=this.value;touchW('${wk2}');cascadeW('${sid}',${si});calSoon('${sid}');autoSoon('${sid}')" onchange="autoSave('${sid}',false,true);autoSoon('${sid}')"><span class="x">×</span><input class="li" style="width:62px" type="number" inputmode="numeric" enterkeyhint="done" placeholder="reps" aria-label="Set ${si+1} reps" value="${logD[rk]||""}" oninput="logD['${rk}']=this.value;calSoon('${sid}');autoSoon('${sid}')" onchange="autoSave('${sid}',false,true);autoSoon('${sid}')"><button class="rir${logD[sid+"-"+si+"-q"]!==undefined?" on":""}" id="q-${sid}-${si}" onclick="cycRir('${sid}',${si})" aria-label="Reps left in the tank">${rirLbl(logD[sid+"-"+si+"-q"])}</button><button class="rest" onclick="startTimer(${e.rst})" aria-label="Start ${e.rst}s rest">${IC.timer}</button></div><div class="calh" id="h-${sid}-${si}"></div>`;
           }
-          if(editing[dk+"|"+sid])out+=`<button class="sb" style="margin-top:4px" onclick="cancelEdit('${sid}','${dk}')">Cancel edit</button>`;
+          if(editing[dk+"|"+sid])out+=`<button class="sb" style="margin-top:4px" onclick="cancelEdit('${sid}','${dk}')">✓ Done editing</button>`;
           out+=`</div>`;
         }
         if(isDone){
@@ -758,12 +777,11 @@ function render(){
         }
         out+=`</article>`;
       });
-      if(canLog&&done<wo.ex.length)out+=`<div class="savebar"><button class="btn" onclick="saveSess()">Save session</button></div>`;
-      else if(canLog)out+=`<button class="btn ghost" style="margin-top:4px" onclick="saveSess()">Save changes</button>`;
+      if(canLog)out+=`<div class="savebar"><button class="btn${done===wo.ex.length?" ghost":""}" onclick="saveSess()">${done===wo.ex.length?"Workout summary":"Finish workout"}</button><div style="text-align:center;font-size:11px;color:var(--dm);margin-top:6px">Sets save automatically as you log them</div></div>`;
       out+=`<div class="cl">Cardio <em>always last</em></div><div class="cd" style="display:flex;gap:14px;align-items:flex-start"><div class="wu-ic" style="background:rgba(74,222,128,.12);color:var(--grn);width:38px;height:38px">${IC.timer}</div><div style="flex:1"><div style="font-weight:700;font-size:15px">${h(cd.t)}</div><div class="num" style="font-size:12px;color:var(--dm);margin-top:2px">${cd.d} min · HR ${cd.hr} bpm</div><p style="font-size:13px;color:var(--dm);line-height:1.6;margin-top:8px">${h(cd.i)}</p>${cardioLog(dk,canLog,cd.d)}</div></div>`;
       out+=`<button class="cd" onclick="showSci=!showSci;render()" style="width:100%;display:flex;justify-content:space-between;align-items:center;color:var(--tx);text-align:left;${showSci?"border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0":""}"><span style="font-weight:700;font-size:14px">Training guide</span><span style="font-size:18px;color:var(--dm);transform:rotate(${showSci?90:0}deg);transition:transform 200ms var(--ease-out)">›</span></button>`;
       }
-      if(showSci&&!U.skip[dk])out+=`<div class="cd" style="border-top:none;border-top-left-radius:0;border-top-right-radius:0;margin-top:-1px"><p style="font-size:13px;color:var(--dm);line-height:1.7"><strong style="color:var(--tx)">Effort:</strong> Sets 1–2 stop with 2 reps left. Last set = failure.<br><br><strong style="color:var(--tx)">Progression:</strong> Build reps. Hit the top of the range on all sets → go up one step (set your gym\'s steps in ⚙ Settings). Reps drop, build back up.<br><br><strong style="color:var(--tx)">Adapts to you:</strong> Suggestions come from your latest session. Way off the rep range, or marked too heavy/light → the weight is recalculated from your actual reps. 2+ weeks off → restart at 80–90% and ramp back.<br><br><strong style="color:var(--tx)">Mid-session check:</strong> after each set, if your reps fall below the range (too heavy) or way above it (too light), the app suggests a corrected weight for your remaining sets — tap Apply.<br><br><strong style="color:var(--tx)">Busy machine:</strong> tap Swap for an equivalent exercise.<br><br><strong style="color:var(--tx)">Training blocks:</strong> 5 weeks. Weeks 1–2 base volume, weeks 3–4 one extra set on the first two lifts, week 5 deload (half the sets, ~90% weight, no failure). Deload sessions don\'t count toward progression.<br><br><strong style="color:var(--blu)">Posture:</strong> Rows + rear delts + warm-ups.</p></div>`;
+      if(showSci&&!U.skip[dk])out+=`<div class="cd" style="border-top:none;border-top-left-radius:0;border-top-right-radius:0;margin-top:-1px"><p style="font-size:13px;color:var(--dm);line-height:1.7"><strong style="color:var(--tx)">Effort:</strong> Sets 1–2 stop with 2 reps left. Last set = failure.<br><br><strong style="color:var(--tx)">Progression:</strong> Build reps. Hit the top of the range on all sets → go up one step (set your gym\'s steps in ⚙ Settings). Reps drop, build back up.<br><br><strong style="color:var(--tx)">Adapts to you:</strong> Suggestions come from your latest session. Way off the rep range, or marked too heavy/light → the weight is recalculated from your actual reps. 2+ weeks off → restart at 80–90% and ramp back.<br><br><strong style="color:var(--tx)">Auto-save:</strong> each set saves by itself about a second after you enter it (or as soon as you tap out of the box). The green check appears with the first saved set; Finish workout just shows your summary.<br><br><strong style="color:var(--tx)">Mid-session check:</strong> after each set, if your reps fall below the range (too heavy) or way above it (too light), the app suggests a corrected weight for your remaining sets — tap Apply.<br><br><strong style="color:var(--tx)">Busy machine:</strong> tap Swap for an equivalent exercise.<br><br><strong style="color:var(--tx)">Training blocks:</strong> 5 weeks. Weeks 1–2 base volume, weeks 3–4 one extra set on the first two lifts, week 5 deload (half the sets, ~90% weight, no failure). Deload sessions don\'t count toward progression.<br><br><strong style="color:var(--blu)">Posture:</strong> Rows + rear delts + warm-ups.</p></div>`;
     }
   } else {
     const ids=Object.keys(U.logs).filter(id=>EX[id]),ts=Object.values(U.logs).reduce((a,l)=>a+l.reduce((b,e)=>b+e.sets.length,0),0);
