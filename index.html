@@ -480,12 +480,18 @@ function clearDraft(sid,dk){const D=DR[dk]||{};for(let i=0;i<12;i++){delete D[si
 function flushAll(){try{Object.keys(PLAN).forEach(sid=>autoSave(sid,false,true));saveDraftNow()}catch(e){}}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flushAll()});
 window.addEventListener("pagehide",flushAll);
+let pendingRender=false,rendering=false;
+function typing(){const a=document.activeElement;return!!(a&&a.tagName==="INPUT"&&a.closest("#app"))}
+document.addEventListener("focusout",()=>setTimeout(()=>{if(pendingRender&&!typing()){pendingRender=false;render()}},60));
+function updLive(sid,sets,pl){const b=document.getElementById("sv-"+sid);if(b)b.innerHTML=`✓ Saved · ${sets.length}/${pl.n} sets`}
 function autoSoon(sid){clearTimeout(asT[sid]);asT[sid]=setTimeout(()=>autoSave(sid),1500)}
 // returns {sets, miss} where miss = set numbers that have reps but no usable weight
-function readSets(sid,n,D){D=D||logD;const sets=[],miss=[];for(let i=0;i<n;i++){const r=parseInt(D[sid+"-"+i+"-r"])||0;if(!r)continue;const raw=D[sid+"-"+i+"-w"],w=num(raw),q=D[sid+"-"+i+"-q"];if(raw==null||String(raw).trim()===""||isNaN(w)||w<0){miss.push(i+1);continue}sets.push(q!==undefined?{w,r,q}:{w,r})}return{sets,miss}}
+function readSets(sid,n,D){D=D||logD;const sets=[],miss=[];for(let i=0;i<n;i++){const r=parseInt(D[sid+"-"+i+"-r"])||0;if(!(r>0))continue;const raw=D[sid+"-"+i+"-w"],w=num(raw),q=D[sid+"-"+i+"-q"];if(raw==null||String(raw).trim()===""||isNaN(w)||w<0){miss.push(i+1);continue}sets.push(q!==undefined?{w,r,q}:{w,r})}return{sets,miss}}
 function autoSave(sid,finish,stay){ // stay = save but keep the card open (tap-out between boxes)
-  clearTimeout(asT[sid]);const pl=PLAN[sid];if(!pl)return null;const dk=pl.dk,D=DR[dk]||{};
-  const {sets,miss}=readSets(sid,pl.n,D),prev=logFor(sid,dk);
+  clearTimeout(asT[sid]);asT[sid]=null;const pl=PLAN[sid];if(!pl)return null;const dk=pl.dk,D=DR[dk]||{};
+  if(rendering)return null; // a box removed by a redraw fires "change" — the redraw already saved everything
+  const {sets,miss}=readSets(sid,12,D),prev=logFor(sid,dk); // read every typed set, never only the planned count
+  if(!sets.length&&!miss.length&&prev&&editing[dk+"|"+sid]){U.logs[sid]=U.logs[sid].filter(l=>l!==prev);if(!U.logs[sid].length)delete U.logs[sid];saveU();toast("Removed "+EX[sid].name+" from this day")}
   if(sets.length){
     if(!U.logs[sid])U.logs[sid]=[];
     const others=U.logs[sid].filter(l=>l!==prev);
@@ -499,16 +505,16 @@ function autoSave(sid,finish,stay){ // stay = save but keep the card open (tap-o
     saveU();
   }
   const done=sets.length&&!miss.length&&(finish||(sets.length>=pl.n&&!stay&&!editing[dk+"|"+sid]));
-  if(done){clearDraft(sid,dk);saveDraftNow();if(!finish)render();return sets}
+  if(done){clearDraft(sid,dk);saveDraftNow();if(!finish){if(typing())pendingRender=true;else render()}else updLive(sid,sets,pl);return sets}
   // partial: update the card in place (no re-render, so the keyboard stays open)
   const b=document.getElementById("sv-"+sid);if(b)b.innerHTML=miss.length?`<span style="color:var(--ac)">⚠ Set ${miss.join(", ")} needs a weight (0 = bodyweight)</span>`:sets.length?`✓ Saved · ${sets.length}/${pl.n} sets`:"";
-  const sw=document.getElementById("swb-"+sid);if(sw&&sets.length)sw.remove();
+  const sw=document.getElementById("swb-"+sid);if(sw&&sets.length)sw.remove();const sg=document.getElementById("sg-"+sid);if(sg&&sets.length)sg.classList.add("on");
   const ix=document.getElementById("ix-"+sid);if(ix&&sets.length){ix.innerHTML=IC.check;ix.style.background="rgba(74,222,128,.15)";ix.style.color="var(--grn)"}
   saveDraft();return sets.length?sets:null;
 }
 function saveSess(){ // "Finish workout": flush every open exercise, then show the summary
   const wo=getWO(selDay);if(!wo)return;const dk=dayKey(selDay,0),noW=[];
-  Object.keys(PLAN).forEach(sid=>{const {miss}=readSets(sid,PLAN[sid].n,DR[dk]||{});miss.forEach(m=>noW.push(EX[sid].name+" set "+m))});
+  Object.keys(PLAN).forEach(sid=>{const {miss}=readSets(sid,12,DR[dk]||{});miss.forEach(m=>noW.push(EX[sid].name+" set "+m))});
   if(noW.length){alert("Add a weight for: "+noW.join(", ")+". (Use 0 for bodyweight.)\n\nEverything else is already saved.");return}
   Object.keys(PLAN).forEach(sid=>autoSave(sid,true));saveDraftNow();
   const summary=[],prs=[];
@@ -643,7 +649,7 @@ function showDayMenu(di){
   [0,1].forEach(w=>{c+=`<h4>Week ${w+1} workouts</h4>`;WO.slice(w*5,w*5+5).forEach((o,j)=>{const ix=w*5+j;c+=`<button class="opt${ix===cur&&!sk?" cur":""}" onclick="setOvr('${dk}',${ix},${nat})"><div><b>${o.day} · ${h(o.name.split(" - ")[1]||o.name)}</b><small>${ix===nat?"Planned for this day":o.ex.length+" exercises"}</small></div>${ix===cur&&!sk?'<span class="pill" style="color:var(--ac);background:rgba(224,83,47,.12)">CURRENT</span>':""}</button>`})});
   c+=`<button class="btn ghost" style="margin-top:10px" onclick="closeSheet(this)">Cancel</button>`;openSheet(c);
 }
-function setOvr(dk,ix,nat){if(ix===nat)delete U.ovr[dk];else U.ovr[dk]=ix;delete U.skip[dk];saveU();closeAll();render()}
+function setOvr(dk,ix,nat){Object.keys(U.swaps).forEach(k=>{if(k.startsWith(dk+"|"))delete U.swaps[k]});if(ix===nat)delete U.ovr[dk];else U.ovr[dk]=ix;delete U.skip[dk];saveU();closeAll();render()}
 function showSettings(){
   const c=U.cfg,seg=(k,vals,cur,unit)=>`<div class="felt" style="margin-top:6px">${vals.map(v=>`<button class="${cur===v?"on k":""}" onclick="U.cfg.${k}=${typeof v==="string"?`'${v}'`:v};saveU();closeAll();showSettings();render()">${v}${unit||""}</button>`).join("")}</div>`;
   openSheet(`<div class="ttl">Settings</div><h4>Dumbbell jumps (per dumbbell)</h4><p style="font-size:13px">The smallest step between your gym's dumbbells.</p>${seg("db",[2.5,5],c.db||2.5," lbs")}<h4>Machine / stack jumps</h4><p style="font-size:13px">The smallest step on the weight stacks.</p>${seg("mach",[2.5,5,10],c.mach||5," lbs")}<h4>Rest timer sound</h4><p style="font-size:13px">Plays when rest ends (needs the ring/silent switch on). The screen stays awake while the timer runs.</p><div class="felt" style="margin-top:6px"><button class="${c.sound!==false?"on k":""}" onclick="U.cfg.sound=true;saveU();closeAll();showSettings();beep()">On</button><button class="${c.sound===false?"on k":""}" onclick="U.cfg.sound=false;saveU();closeAll();showSettings()">Off</button></div><h4>Training block</h4><p style="font-size:13px">You're in block ${blkNum(today())}, week ${blkWeek(today())} of ${BLK}. Weeks 1–2 base, 3–4 add a set to the first two lifts, week 5 deload. Starting a new block resets to week 1 this week.</p><button class="btn ghost" style="margin-top:8px;font-size:16px" onclick="if(confirm('Start a new training block this week (week 1)?')){U.blk=ymd(mondayOf(0));saveU();closeAll();render();toast('New block started')}">Start new block this week</button><button class="btn ghost" style="margin-top:22px" onclick="closeSheet(this)">Done</button>`);
@@ -713,6 +719,7 @@ function render(){
   const wd=getWD();
   const dk=dayKey(selDay,weekOff),canLog=weekOff===0;
   logD=DR[dk]||(DR[dk]={});
+  Object.keys(asT).forEach(k=>{if(asT[k]){clearTimeout(asT[k]);asT[k]=null;autoSave(k,false,true)}}); // flush before PLAN is rebuilt
   let out="";CAL={};PLAN={};
 
   if(tab==="today"){
@@ -734,7 +741,7 @@ function render(){
       if(U.skip[dk]){out+=`<section class="hero" style="text-align:center;padding:28px 18px"><div class="eyebrow">Skipped</div><h2>Rest day</h2><p style="font-size:13px;color:var(--dm);margin-top:8px">${h(wo.name)} won't be done this day.</p><button class="sb" style="margin-top:14px" onclick="showDayMenu(${selDay})">${IC.swap}Change plan</button></section>`}else{
       const lm=wo.ex.reduce((s,e)=>s+e.s*45+(e.s-1)*e.rst+30,0)/60;
       const doneArr=wo.ex.map(e=>!!logFor(effId(dk,e.id),dk)),done=doneArr.filter(Boolean).length;
-      out+=`<section class="hero"><button class="sb hero-ch" onclick="showDayMenu(${selDay})">${IC.swap}Change</button><div class="eyebrow">${U.ovr[dk]!=null?"Moved here · "+wo.day+" week "+wo.wk:"Week "+wo.wk+" of 2 · "+h(wo.name.split(" - ")[0])}</div><h2>${h(wo.name.split(" - ")[1]||wo.name)}</h2><div class="blk${wo.blk.dl?" dl":wo.blk.wk>=3?" up":""}">Block ${wo.blk.n} · week ${wo.blk.wk} of ${BLK} · ${wo.blk.dl?"DELOAD — half the sets, no failure":wo.blk.wk>=3?"+1 set on the first two lifts":"base volume"}</div><div class="meta"><span><strong class="num">~${Math.round(5+lm+cd.d)}</strong> min total</span><span><strong>${wo.ex.length}</strong> exercises</span><span><strong class="num">${cd.d}</strong> min cardio</span></div><div class="segs">${doneArr.map(x=>`<i class="${x?"on":""}"></i>`).join("")}</div><div class="segl"><span>Warm-up → Weights → Cardio</span><span class="num" style="color:${done===wo.ex.length?"var(--grn)":done?"var(--tx)":"var(--dm)"};font-weight:700">${done}/${wo.ex.length} done</span></div></section>`;
+      out+=`<section class="hero"><button class="sb hero-ch" onclick="showDayMenu(${selDay})">${IC.swap}Change</button><div class="eyebrow">${U.ovr[dk]!=null?"Moved here · "+wo.day+" week "+wo.wk:"Week "+wo.wk+" of 2 · "+h(wo.name.split(" - ")[0])}</div><h2>${h(wo.name.split(" - ")[1]||wo.name)}</h2><div class="blk${wo.blk.dl?" dl":wo.blk.wk>=3?" up":""}">Block ${wo.blk.n} · week ${wo.blk.wk} of ${BLK} · ${wo.blk.dl?"DELOAD — half the sets, no failure":wo.blk.wk>=3?"+1 set on the first two lifts":"base volume"}</div><div class="meta"><span><strong class="num">~${Math.round(5+lm+cd.d)}</strong> min total</span><span><strong>${wo.ex.length}</strong> exercises</span><span><strong class="num">${cd.d}</strong> min cardio</span></div><div class="segs">${doneArr.map((x,k)=>`<i id="sg-${effId(dk,wo.ex[k].id)}" class="${x?"on":""}"></i>`).join("")}</div><div class="segl"><span>Warm-up → Weights → Cardio</span><span class="num" style="color:${done===wo.ex.length?"var(--grn)":done?"var(--tx)":"var(--dm)"};font-weight:700">${done}/${wo.ex.length} done</span></div></section>`;
 
       out+=`<div class="cl">Posture warm-up <em>~5 min</em></div><div class="cd wu">`;
       warmup.forEach(w=>{const pe=PEX[w.id];out+=`<div class="wu-row"><div class="wu-ic">${IC.posture}</div><div class="n">${pe?h(pe.name):w.id}<div class="num">${h(w.s)}</div></div><button class="sb" onclick="showPosture('${w.id}')">${IC.info}How-to</button></div>`});
@@ -765,7 +772,7 @@ function render(){
             const wk2=sid+"-"+si+"-w",rk=sid+"-"+si+"-r";
             if(logD[wk2]===undefined&&sugW!=="")logD[wk2]=String(sugW);
             const isLast=si===e.s-1;
-            out+=`<div class="set"><span class="s${isLast?" max":""}">${isLast?"MAX":"SET "+(si+1)}</span><input class="li" id="w-${sid}-${si}" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="lbs" aria-label="Set ${si+1} weight" value="${logD[wk2]||""}" oninput="logD['${wk2}']=this.value;touchW('${wk2}');cascadeW('${sid}',${si});calSoon('${sid}');autoSoon('${sid}')" onchange="autoSave('${sid}',false,true);autoSoon('${sid}')"><span class="x">×</span><input class="li" style="width:62px" type="number" inputmode="numeric" enterkeyhint="done" placeholder="reps" aria-label="Set ${si+1} reps" value="${logD[rk]||""}" oninput="logD['${rk}']=this.value;calSoon('${sid}');autoSoon('${sid}')" onchange="autoSave('${sid}',false,true);autoSoon('${sid}')"><button class="rir${logD[sid+"-"+si+"-q"]!==undefined?" on":""}" id="q-${sid}-${si}" onclick="cycRir('${sid}',${si})" aria-label="Reps left in the tank">${rirLbl(logD[sid+"-"+si+"-q"])}</button><button class="rest" onclick="startTimer(${e.rst})" aria-label="Start ${e.rst}s rest">${IC.timer}</button></div><div class="calh" id="h-${sid}-${si}"></div>`;
+            out+=`<div class="set"><span class="s${isLast?" max":""}">${isLast?"MAX":"SET "+(si+1)}</span><input class="li" id="w-${sid}-${si}" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="lbs" aria-label="Set ${si+1} weight" value="${logD[wk2]||""}" oninput="logD['${wk2}']=this.value;touchW('${wk2}');cascadeW('${sid}',${si});calSoon('${sid}');autoSoon('${sid}')" onchange="autoSave('${sid}',false,true);autoSoon('${sid}')"><span class="x">×</span><input class="li" style="width:62px" type="number" inputmode="numeric" min="1" step="1" enterkeyhint="done" placeholder="reps" aria-label="Set ${si+1} reps" value="${logD[rk]||""}" oninput="logD['${rk}']=this.value;calSoon('${sid}');autoSoon('${sid}')" onchange="autoSave('${sid}',false,true);autoSoon('${sid}')"><button class="rir${logD[sid+"-"+si+"-q"]!==undefined?" on":""}" id="q-${sid}-${si}" onclick="cycRir('${sid}',${si})" aria-label="Reps left in the tank">${rirLbl(logD[sid+"-"+si+"-q"])}</button><button class="rest" onclick="startTimer(${e.rst})" aria-label="Start ${e.rst}s rest">${IC.timer}</button></div><div class="calh" id="h-${sid}-${si}"></div>`;
           }
           if(editing[dk+"|"+sid])out+=`<button class="sb" style="margin-top:4px" onclick="cancelEdit('${sid}','${dk}')">✓ Done editing</button>`;
           out+=`</div>`;
@@ -805,8 +812,9 @@ function render(){
   const navH=`<nav class="nav"><button class="nb ${tab==="today"?"a":""}" onclick="tab='today';render()"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>Workout</button><button class="nb ${tab==="progress"?"a":""}" onclick="tab='progress';render()"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Progress</button></nav>`;
 
   const sc=document.getElementById("scroll"),top=sc?sc.scrollTop:0,tabNow=tab;
-  app.innerHTML=`<div class="cnt" id="scroll">${out}</div>${navH}`;
+  rendering=true;try{app.innerHTML=`<div class="cnt" id="scroll">${out}</div>${navH}`}finally{rendering=false}
   document.getElementById("scroll").scrollTop=(render._tab===tabNow)?top:0;render._tab=tabNow;Object.keys(CAL).forEach(calAll);
+  Object.keys(PLAN).forEach(sid=>{if(draftReps(sid))autoSave(sid,false,true)}); // sets completed by a pre-filled weight are saved right away
 }
 
 // ── How-to sheets ──
