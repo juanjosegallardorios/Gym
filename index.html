@@ -75,11 +75,15 @@ input[type=number]{-moz-appearance:textfield}
 .wk .t b{font-size:15px;font-weight:700;letter-spacing:-.01em}
 .wk .t div{font-size:11px;color:var(--dm);margin-top:1px}
 .today-link{display:block;margin:0 auto 10px;background:none;border:none;color:var(--ac);font-size:12px;font-weight:700}
-.days{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px}
 .day{position:relative;padding:9px 0 10px;border-radius:14px;border:1px solid var(--line);background:var(--s1);color:var(--dm);text-align:center;transition:transform 120ms var(--ease-out),background 160ms ease,color 160ms ease}
 .day:active{transform:scale(.95)}
-.day small{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-.day b{display:block;font-size:18px;font-weight:700;margin-top:2px;color:var(--tx)}
+.day small{display:block;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.day b{display:block;font-size:16px;font-weight:700;margin-top:2px;color:var(--tx)}
+.day em{display:block;height:13px;margin-top:2px;font-style:normal;font-size:10px;font-weight:800;color:var(--dm2)}
+.day em.done{color:var(--grn)}
+.day.sel em{color:#fff}
+.day.fut{opacity:.65}
 .day.is-today{border-color:rgba(232,93,58,.55)}
 .day.sel{background:linear-gradient(160deg,#e85d3a,#cf4f2c);border-color:transparent;color:rgba(255,255,255,.85);box-shadow:0 8px 20px -10px rgba(232,93,58,.8)}
 .day.sel b{color:#fff}
@@ -183,6 +187,12 @@ input[type=number]{-moz-appearance:textfield}
 .vmeta small{display:block;font-size:12px;color:var(--dm);margin-top:3px}
 .svd{font-size:11px;font-weight:700;color:var(--grn);margin-top:6px}
 .svd:empty{display:none}
+.seq{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:800;color:var(--dm2)}
+.seq span{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:#fff;border:1px solid var(--line2)}
+.seq span.on{background:var(--ac);border-color:transparent;color:#fff}
+.seq i{font-style:normal;font-weight:500}
+.pick3{display:flex;justify-content:center;gap:8px;margin-top:12px}
+.pick3 .sb{min-width:56px;justify-content:center;font-size:15px;padding:10px 14px}
 .calh:empty{display:none}
 .cal{margin:0 0 9px 42px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--c) 8%,#fff);border:1px solid color-mix(in srgb,var(--c) 28%,transparent)}
 .cal b{display:block;font-size:13px;font-weight:800;color:var(--c)}
@@ -265,7 +275,7 @@ input[type=number]{-moz-appearance:textfield}
 // ═══════════════════════════════════════════════
 
 // Form videos: [YouTube id, channel, seconds] — one short tutorial per exercise (~1 min or less)
-const EX_VIDEOS={"chest_press": ["Qu7-ceCvq7w", "Andrew Kwong, DPT (DeltaBolic)", 10], "shoulder_press": ["Gkk-6q7Rq-s", "Andrew Kwong, DPT (DeltaBolic)", 16], "pec_fly": ["a9vQ_hwIksU", "Andrew Kwong, DPT (DeltaBolic)", 15], "rear_delt_machine": ["v0CxZlWX9zQ", "TylerPath", 60], "lat_pulldown": ["hnSqbBk15tw", "Jeff Nippard", 48], "cybex_pulldown": ["2cUe1_6z23Y", "Halo Gym", 45], "low_row": ["8QuMq1GMMng", "Colossus Fitness", 14], "leg_press": ["nDh_BlnLCGc", "Jeff Nippard", 58], "leg_curl": ["7PE3MlvGAts", "Hayden Steele", 60], "hip_abduction": ["tu4o4quPv2k", "Andrew Kwong, DPT (DeltaBolic)", 10], "hip_adduction": ["YIEhLkvyMvs", "Morgan, M.S., CPT", 26], "triceps_press": ["lda3EUz-hxU", "Live Lean TV", 31], "arm_curl": ["S4dDLfp3e8w", "Andrew Kwong, DPT (DeltaBolic)", 8], "arm_extension": ["1AFJTda1btg", "Andrew Kwong, DPT (DeltaBolic)", 10], "incline_db_press": ["8fXfwG4ftaQ", "Andrew Kwong, DPT (DeltaBolic)", 12], "db_curl": ["MKWBV29S6c0", "Andrew Kwong, DPT (DeltaBolic)", 8], "db_overhead_ext": ["J565P8FzJXA", "Andrew Kwong, DPT (DeltaBolic)", 12], "db_cuban_press": ["kHTADPGB9oI", "Live Lean TV", 47], "db_flat_press": ["SidmT09GXz8", "Chris Schaum", 46], "db_fly": ["95g8rULJSfY", "The Fitting Rooms PT Gym", 21], "db_shoulder_press": ["JmJzqda_0XQ", "Chris Schaum", 42], "db_lateral_raise": ["HeovYNoZDRg", "Jeff Nippard", 47], "db_rear_delt_fly": ["sIQNCJ6Xwsk", "Andrew Kwong, DPT (DeltaBolic)", 16], "db_row": ["WkFX6_GxAs8", "Andrew Kwong, DPT (DeltaBolic)", 9], "db_chest_supported_row": ["oNsqMW1gPiU", "Kraken Exercise Library", 42], "db_pullover": ["AoX-yHRrKFw", "J2FIT Strength & Conditioning", 23], "db_rdl": ["wiekN4aIJ0g", "KevTheTrainer", 61], "db_goblet_squat": ["7-80HiXX1K8", "Le Sweat", 17], "db_split_squat": ["A3ctWjao8cc", "Jeremy Ethier", 53], "db_hip_thrust": ["QqtLsnNthbA", "Kraken Exercise Library", 33], "db_hammer_curl": ["NyW2fT2gQhM", "Christina Dorner", 59], "db_incline_curl": ["uCUaRFlA9vE", "Andrew Kwong, DPT (DeltaBolic)", 12], "db_skull_crusher": ["WLQizQXoeIg", "Heather Robertson", 57]};
+const EX_VIDEOS={"chest_press": ["Qu7-ceCvq7w", "Andrew Kwong, DPT (DeltaBolic)", 10], "shoulder_press": ["wLZMSqa6wEE", "Jeff Nippard", 59], "pec_fly": ["a9vQ_hwIksU", "Andrew Kwong, DPT (DeltaBolic)", 15], "rear_delt_machine": ["P5CXx_jgTDE", "Jeff Nippard", 33], "lat_pulldown": ["hnSqbBk15tw", "Jeff Nippard", 48], "cybex_pulldown": ["SqQxuEpXnF4", "Jeff Nippard", 51], "low_row": ["8QuMq1GMMng", "Colossus Fitness", 14], "leg_press": ["nDh_BlnLCGc", "Jeff Nippard", 58], "leg_curl": ["Lh3iMIcbkBQ", "Jeff Nippard", 50], "hip_abduction": ["tu4o4quPv2k", "Andrew Kwong, DPT (DeltaBolic)", 10], "hip_adduction": ["YIEhLkvyMvs", "Morgan, M.S., CPT", 26], "triceps_press": ["lda3EUz-hxU", "Live Lean TV", 31], "arm_curl": ["S4dDLfp3e8w", "Andrew Kwong, DPT (DeltaBolic)", 8], "arm_extension": ["5YaWrGPtIIE", "Jeff Nippard", 50], "incline_db_press": ["xGMqmmn5Z7Q", "Jeff Nippard", 56], "db_curl": ["MKWBV29S6c0", "Andrew Kwong, DPT (DeltaBolic)", 8], "db_overhead_ext": ["sah-sHCZDS0", "Jeff Nippard", 57], "db_cuban_press": ["kHTADPGB9oI", "Live Lean TV", 47], "db_flat_press": ["SidmT09GXz8", "Chris Schaum", 46], "db_fly": ["95g8rULJSfY", "The Fitting Rooms PT Gym", 21], "db_shoulder_press": ["JmJzqda_0XQ", "Chris Schaum", 42], "db_lateral_raise": ["HeovYNoZDRg", "Jeff Nippard", 47], "db_rear_delt_fly": ["sIQNCJ6Xwsk", "Andrew Kwong, DPT (DeltaBolic)", 16], "db_row": ["WkFX6_GxAs8", "Andrew Kwong, DPT (DeltaBolic)", 9], "db_chest_supported_row": ["fgSyNdEsqlM", "Jeff Nippard", 43], "db_pullover": ["AoX-yHRrKFw", "J2FIT Strength & Conditioning", 23], "db_rdl": ["wiekN4aIJ0g", "KevTheTrainer", 61], "db_goblet_squat": ["7-80HiXX1K8", "Le Sweat", 17], "db_split_squat": ["A9OxBT-6Mw0", "Jeff Nippard", 53], "db_hip_thrust": ["QqtLsnNthbA", "Kraken Exercise Library", 33], "db_hammer_curl": ["NyW2fT2gQhM", "Christina Dorner", 59], "db_incline_curl": ["j5f_0rNkPwU", "Jeff Nippard", 55], "db_skull_crusher": ["WLQizQXoeIg", "Heather Robertson", 57]};
 
 // Images will be loaded lazily from images.js
 if(!window.EX_IMAGES) window.EX_IMAGES={};
@@ -336,17 +346,25 @@ const ALT={
   db_curl:["arm_curl","db_incline_curl","db_hammer_curl"]
 };
 
-const WO=[
-  {day:"Mon",wk:1,name:"Full Body - Push Focus",ex:[{id:"leg_press",s:3,r:"8-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"chest_press",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"shoulder_press",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"db_lateral_raise",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"db_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"},{id:"triceps_press",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"}]},
-  {day:"Tue",wk:1,name:"Full Body - Pull Focus",ex:[{id:"lat_pulldown",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_press",s:3,r:"8-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"incline_db_press",s:3,r:"8-10",rst:90,n:"2 left / 2 left / FAILURE"},{id:"hip_abduction",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"hip_adduction",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"cybex_pulldown",s:2,r:"10-12",rst:90,n:"2 left / FAILURE"},{id:"rear_delt_machine",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"db_overhead_ext",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"},{id:"arm_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"}]},
+const OLD_WO=[
+  {day:"Mon",wk:1,name:"Full Body - Push Focus",ex:[{id:"leg_press",s:3,r:"8-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"chest_press",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"shoulder_press",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"db_lateral_raise",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"db_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"},{id:"triceps_press",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"}]},
+  {day:"Tue",wk:1,name:"Full Body - Pull Focus",ex:[{id:"lat_pulldown",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_press",s:3,r:"8-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"incline_db_press",s:3,r:"8-10",rst:90,n:"2 left / 2 left / FAILURE"},{id:"hip_abduction",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"hip_adduction",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"cybex_pulldown",s:2,r:"10-12",rst:90,n:"2 left / FAILURE"},{id:"rear_delt_machine",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"db_overhead_ext",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"arm_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"}]},
   {day:"Wed",wk:1,name:"Full Body - Leg Emphasis",ex:[{id:"leg_press",s:4,r:"6-10",rst:120,n:"3 left / 2 left / 2 left / FAILURE"},{id:"incline_db_press",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"10-12",rst:60,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"hip_abduction",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"hip_adduction",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"arm_curl",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"db_overhead_ext",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"}]},
   {day:"Thu",wk:1,name:"Full Body - Upper Emphasis",ex:[{id:"shoulder_press",s:3,r:"6-10",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_press",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"lat_pulldown",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"rear_delt_machine",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"db_cuban_press",s:2,r:"10-12",rst:60,n:"3 left / 2 left. LIGHT!"},{id:"db_lateral_raise",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"arm_extension",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"db_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"}]},
   {day:"Fri",wk:1,name:"Full Body - Hypertrophy Pump",ex:[{id:"leg_press",s:3,r:"12-15",rst:90,n:"2 left / 2 left / FAILURE"},{id:"cybex_pulldown",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"incline_db_press",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"db_lateral_raise",s:2,r:"15-20",rst:60,n:"2 left / FAILURE"},{id:"db_curl",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"triceps_press",s:2,r:"15-20",rst:45,n:"2 left / FAILURE"}]},
   {day:"Mon",wk:2,name:"Full Body - Strength + Size",ex:[{id:"incline_db_press",s:3,r:"6-10",rst:120,n:"2 left / 2 left / FAILURE"},{id:"leg_press",s:3,r:"8-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"8-10",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"10-12",rst:60,n:"2 left / 2 left / FAILURE"},{id:"shoulder_press",s:2,r:"10-12",rst:90,n:"2 left / FAILURE"},{id:"db_lateral_raise",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"arm_curl",s:2,r:"8-12",rst:60,n:"2 left / FAILURE"},{id:"db_overhead_ext",s:2,r:"10-12",rst:60,n:"2 left / FAILURE"}]},
-  {day:"Tue",wk:2,name:"Full Body - Back & Glutes",ex:[{id:"lat_pulldown",s:3,r:"6-10",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_press",s:3,r:"10-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"rear_delt_machine",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"hip_abduction",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"hip_adduction",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"cybex_pulldown",s:2,r:"10-12",rst:90,n:"2 left / FAILURE"},{id:"db_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"},{id:"triceps_press",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"}]},
+  {day:"Tue",wk:2,name:"Full Body - Back & Glutes",ex:[{id:"lat_pulldown",s:3,r:"6-10",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_press",s:3,r:"10-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"rear_delt_machine",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"hip_abduction",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"hip_adduction",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"cybex_pulldown",s:2,r:"10-12",rst:90,n:"2 left / FAILURE"},{id:"db_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"},{id:"triceps_press",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"}]},
   {day:"Wed",wk:2,name:"Full Body - Volume Day",ex:[{id:"leg_press",s:3,r:"10-15",rst:90,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"chest_press",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"db_cuban_press",s:2,r:"10-12",rst:60,n:"3 left / 2 left. LIGHT!"},{id:"db_lateral_raise",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"arm_extension",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"db_curl",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"}]},
   {day:"Thu",wk:2,name:"Full Body - Mechanical Tension",ex:[{id:"lat_pulldown",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_press",s:4,r:"6-10",rst:120,n:"3 left / 2 left / 2 left / FAILURE"},{id:"incline_db_press",s:3,r:"8-10",rst:90,n:"2 left / 2 left / FAILURE"},{id:"hip_abduction",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"hip_adduction",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"pec_fly",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"},{id:"arm_curl",s:2,r:"10-15",rst:60,n:"2 left / FAILURE"},{id:"db_overhead_ext",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"}]},
   {day:"Fri",wk:2,name:"Full Body - Metabolic Finisher",ex:[{id:"leg_press",s:3,r:"15-20",rst:90,n:"2 left / 2 left / FAILURE"},{id:"cybex_pulldown",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"pec_fly",s:3,r:"15-20",rst:45,n:"2 left / 2 left / FAILURE"},{id:"rear_delt_machine",s:3,r:"15-20",rst:45,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:3,r:"10-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"15-20",rst:45,n:"2 left / 2 left / FAILURE"},{id:"db_lateral_raise",s:2,r:"15-20",rst:60,n:"2 left / FAILURE"},{id:"db_curl",s:2,r:"15-20",rst:45,n:"2 left / FAILURE"},{id:"arm_extension",s:2,r:"15-20",rst:45,n:"2 left / FAILURE"}]}
+];
+
+// Full-body program: 3 workouts done in order A → B → C on whatever days you train (2–3×/week).
+// Each exercise keeps ONE rep range everywhere, so progression is session-to-session apples to apples.
+const WO=[
+  {key:"A",name:"Full Body A",ex:[{id:"leg_press",s:3,r:"8-12",rst:150,n:"2 left / 2 left / FAILURE"},{id:"chest_press",s:3,r:"8-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"lat_pulldown",s:3,r:"8-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"10-15",rst:90,n:"2 left / 2 left / FAILURE"},{id:"shoulder_press",s:3,r:"8-12",rst:90,n:"2 left / 2 left / FAILURE"},{id:"db_lateral_raise",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"arm_curl",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"triceps_press",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"}]},
+  {key:"B",name:"Full Body B",ex:[{id:"leg_press",s:3,r:"8-12",rst:150,n:"2 left / 2 left / FAILURE"},{id:"incline_db_press",s:3,r:"8-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"low_row",s:4,r:"8-12",rst:120,n:"2 left / 2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"10-15",rst:90,n:"2 left / 2 left / FAILURE"},{id:"hip_abduction",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"rear_delt_machine",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"db_lateral_raise",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"db_curl",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"db_overhead_ext",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"}]},
+  {key:"C",name:"Full Body C",ex:[{id:"leg_press",s:3,r:"8-12",rst:150,n:"2 left / 2 left / FAILURE"},{id:"pec_fly",s:3,r:"12-15",rst:90,n:"2 left / 2 left / FAILURE"},{id:"cybex_pulldown",s:3,r:"8-12",rst:120,n:"2 left / 2 left / FAILURE"},{id:"leg_curl",s:3,r:"10-15",rst:90,n:"2 left / 2 left / FAILURE"},{id:"hip_adduction",s:2,r:"12-15",rst:60,n:"2 left / FAILURE"},{id:"db_lateral_raise",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"rear_delt_machine",s:3,r:"12-15",rst:60,n:"2 left / 2 left / FAILURE"},{id:"arm_extension",s:3,r:"10-15",rst:60,n:"2 left / 2 left / FAILURE"}]}
 ];
 
 const PEX={
@@ -364,9 +382,7 @@ const PEX={
 const WU=[
   [{id:"band_pull_aparts",s:"2x15"},{id:"cat_cow",s:"1x10"},{id:"wall_angels",s:"2x10"}],
   [{id:"ytw",s:"2x8"},{id:"foam_roll",s:"1x10"},{id:"chin_tucks",s:"2x12"}],
-  [{id:"band_pull_aparts",s:"2x15"},{id:"prone_cobra",s:"2x20s"},{id:"cat_cow",s:"1x10"}],
-  [{id:"wall_slides",s:"2x10"},{id:"thoracic_rotation",s:"1x10ea"},{id:"chin_tucks",s:"2x12"}],
-  [{id:"band_pull_aparts",s:"2x15"},{id:"ytw",s:"2x8"},{id:"wall_angels",s:"2x10"}]
+  [{id:"prone_cobra",s:"2x20s"},{id:"wall_slides",s:"2x10"},{id:"thoracic_rotation",s:"1x10ea"}]
 ];
 
 function getCardio(w){
@@ -380,14 +396,14 @@ const ML={rear_delt_machine:"REAR DELTS",hip_adduction:"ADDUCTORS",leg_press:"LE
   db_flat_press:"CHEST",db_fly:"CHEST",db_shoulder_press:"SHOULDERS",db_lateral_raise:"SHOULDERS",db_rear_delt_fly:"REAR DELTS",db_row:"BACK",db_chest_supported_row:"BACK",db_pullover:"BACK",db_rdl:"HAMSTRINGS",db_goblet_squat:"LEGS",db_split_squat:"LEGS",db_hip_thrust:"GLUTES",db_hammer_curl:"BICEPS",db_incline_curl:"BICEPS",db_skull_crusher:"TRICEPS"};
 
 const SK="forja_v6"; // same storage key as before — existing logs carry over
-let U,tab="today",selDay=null,logD={},timerSec=0,timerInt=null,weekOff=0,showSci=false,editing={},progOpen=null;
+let U,tab="today",selDate=null,logD={},timerSec=0,timerInt=null,weekOff=0,showSci=false,editing={},progOpen=null;
 
 function ld(){try{return JSON.parse(localStorage.getItem(SK))||{}}catch{return{}}}
 function sv(d){try{localStorage.setItem(SK,JSON.stringify(d))}catch(e){alert("Could not save: "+e.message)}}
-function normU(){if(!U.logs)U.logs={};if(!U.start)U.start=new Date().toISOString();["swaps","cfg","seat","ovr","skip","cardio"].forEach(k=>{if(!U[k]||typeof U[k]!=="object")U[k]={}});if(!Array.isArray(U.bw))U.bw=[];if(!U.blk)U.blk=ymd(mondayOf(0));
+function normU(){if(!U.logs)U.logs={};if(!U.start)U.start=new Date().toISOString();["swaps","cfg","seat","ovr","skip","cardio","sched"].forEach(k=>{if(!U[k]||typeof U[k]!=="object")U[k]={}});if(!Array.isArray(U.bw))U.bw=[];if(!U.blk)U.blk=ymd(mondayOf(0));
   Object.keys(U.logs).forEach(k=>{if(!Array.isArray(U.logs[k])){delete U.logs[k];return}U.logs[k]=U.logs[k].filter(l=>l&&l.date&&Array.isArray(l.sets)&&l.sets.length);if(!U.logs[k].length)delete U.logs[k]});
-  migRot();migrate73();pruneSwaps();saveU()}
-function init(){const a=ld();if(!a._u)a._u={name:"Juan Jose",logs:{},sess:0,start:new Date().toISOString()};sv(a);U=a._u;normU();loadDrafts();const d=new Date().getDay();selDay=d>=1&&d<=5?d-1:0;try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}render()}
+  migRot();migrate73();migRR();pruneSwaps();saveU()}
+function init(){const a=ld();if(!a._u)a._u={name:"Juan Jose",logs:{},sess:0,start:new Date().toISOString()};sv(a);U=a._u;normU();loadDrafts();selDate=today();weekOff=0;try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}render()}
 function migrate73(){
   if(U.mig73)return;const pf=U.logs.pec_fly||[],keep=[],rd=[];
   pf.forEach(l=>{const d=pd(l.day||l.date),dow=d.getDay();const w=Math.floor((d.getTime()+12*36e5-new Date(U.start).getTime())/(7*864e5)),pp=((w%2)+2)%2;
@@ -412,12 +428,32 @@ function rotP(off){return((Math.round((mondayOf(off)-pd(U.rotMon))/(7*864e5))%2)
 const BLK=5;
 function blkWeek(dk){if(!U.blk)return 1;return((Math.floor(Math.round((pd(dk)-pd(U.blk))/864e5)/7)%BLK)+BLK)%BLK+1}
 function blkNum(dk){return Math.floor(Math.floor(Math.round((pd(dk)-pd(U.blk))/864e5)/7)/BLK)+1}
-function getWO(di,off){if(!U)return null;off=off===undefined?weekOff:off;const dk=dayKey(di,off),o=U.ovr&&U.ovr[dk],base=WO[o!=null?o:rotP(off)*5+di];if(!base)return base;
-  const bw=blkWeek(dk),dl=bw===BLK;
-  return Object.assign({},base,{blk:{wk:bw,dl,n:blkNum(dk)},ex:base.ex.map((e,i)=>dl?Object.assign({},e,{s:Math.max(1,Math.ceil(e.s/2)),n:"Deload: stop 3–4 reps short on every set — no failure"}):bw>=3&&i<2?Object.assign({},e,{s:e.s+1,n:"+1 set this week (block week "+bw+") · "+e.n}):e)})}
-function natIdx(di,off){return rotP(off===undefined?weekOff:off)*5+di}
+// ── Schedule: A → B → C in order, on whatever days you train ──
+function trainedExcept(dk,sid){for(const [k,ls] of Object.entries(U.logs))if(k!==sid)for(const l of ls)if((l.day||l.date)===dk)return true;return false}
+function trained(dk){for(const ls of Object.values(U.logs))for(const l of ls)if((l.day||l.date)===dk)return true;return false}
+function weekStart(dk){const d=pd(dk);return ymd(new Date(d.getFullYear(),d.getMonth(),d.getDate()-((d.getDay()+6)%7)))}
+// workouts already done this week (Mon–Sun) before dk, in the full-body program
+function doneThisWeek(dk){const ws=weekStart(dk);return Object.keys(U.sched).filter(k=>k>=ws&&k<dk&&trained(k)).sort().map(k=>U.sched[k])}
+function nextSlot(done){for(let i=0;i<WO.length;i++)if(!done.includes(i))return i;return done.length%WO.length} // first not done yet; a 4th session cycles
+function woIdx(dk){if(U.sched[dk]!=null)return U.sched[dk];const t=today();if(dk<t)return null;if(dk===t)return nextSlot(doneThisWeek(t));
+  return weekStart(dk)===weekStart(t)?nextSlot(doneThisWeek(t).concat(woIdx(t))):0}
+function sessNo(dk){return Object.keys(U.logs).length?[...new Set(Object.values(U.logs).flat().map(l=>l.day||l.date).filter(k=>k>=weekStart(dk)&&k<dk))].length+1:1}
+function woOf(dk){const i=woIdx(dk);if(i==null||!WO[i])return null;const base=WO[i],bw=blkWeek(dk),dl=bw===BLK;
+  return Object.assign({},base,{i,blk:{wk:bw,dl,n:blkNum(dk)},ex:base.ex.map((e,k)=>dl?Object.assign({},e,{s:Math.max(1,Math.ceil(e.s/2)),n:"Deload: stop 3–4 reps short on every set — no failure"}):bw>=3&&k<2?Object.assign({},e,{s:e.s+1,n:"+1 set this week (block week "+bw+") · "+e.n}):e)})}
+function getWO(di,off){return woOf(dayKey(di,off===undefined?weekOff:off))}
+function canLogD(dk){const t=today();return dk<=t&&daysBetween(dk,t)<=7}
+function offOf(dk){const d=pd(dk),m=new Date(d.getFullYear(),d.getMonth(),d.getDate()-((d.getDay()+6)%7));return Math.round((m-mondayOf(0))/(7*864e5))}
+function goWeek(o){weekOff=o;selDate=o===0?today():ymd(mondayOf(o));render()}
+function lastDoneOf(i,before){const ks=Object.keys(U.sched).filter(k=>k<before&&U.sched[k]===i&&trained(k)).sort();return ks.length?ks[ks.length-1]:null}
+// one-time: tag old logs with the rep range they were done in (old 10-day program), so the first
+// full-body session converts the weight correctly instead of mistaking a range change for a bad day
+function migRR(){if(U.migRR)return;
+  Object.entries(U.logs).forEach(([sid,ls])=>ls.forEach(l=>{if(l.rr)return;const dk=l.day||l.date,d=pd(dk),dow=(d.getDay()+6)%7;if(dow>4||!U.rotMon)return;
+    const mon=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dow),par=((Math.round((mon-pd(U.rotMon))/(7*864e5))%2)+2)%2,o=U.ovr[dk],old=OLD_WO[o!=null?o:par*5+dow];if(!old)return;
+    const e=old.ex.find(x=>x.id===sid)||old.ex.find(x=>U.swaps[dk+"|"+x.id]===sid)||old.ex.find(x=>(ALT[x.id]||[]).includes(sid));if(e)l.rr=e.r}));
+  U.migRR=true}
 function weekNo(off){const s0=new Date(U.start),sd=new Date(s0.getFullYear(),s0.getMonth(),s0.getDate()),sm=new Date(sd.getFullYear(),sd.getMonth(),sd.getDate()-((sd.getDay()+6)%7));return Math.max(1,Math.round((mondayOf(off)-sm)/(7*864e5))+1)}
-function getWD(){const m=mondayOf(weekOff);const f=new Date(m.getFullYear(),m.getMonth(),m.getDate()+4);const fmt=d=>d.toLocaleDateString("en-US",{month:"short",day:"numeric"});return{ms:fmt(m),fs:fmt(f),wn:weekNo(weekOff),y:m.getFullYear()}}
+function getWD(){const m=mondayOf(weekOff);const f=new Date(m.getFullYear(),m.getMonth(),m.getDate()+6);const fmt=d=>d.toLocaleDateString("en-US",{month:"short",day:"numeric"});return{ms:fmt(m),fs:fmt(f),wn:weekNo(weekOff),y:m.getFullYear()}}
 
 // ── Swaps (busy/broken machine) — stored per planned day ──
 function swapKey(dk,id){return dk+"|"+id}
@@ -428,45 +464,48 @@ const isDB=id=>id.startsWith("db_")||id==="incline_db_press";
 function topW(l){return l.sets.reduce((m,s)=>Math.max(m,s.w),0)}
 function e1rm(w,r){return w*(1+r/30)} // Epley estimate
 // Session calibration: estimate strength from every set (sets 1..n-1 stop ~2 reps short, last set = failure)
-function sessCal(sets,lo,hi,inc){
-  const n=sets.length;if(!n)return null;const fs=sets[n-1];
-  const best=Math.max(...sets.map((s,i)=>e1rm(s.w,s.r+(s.q!=null?s.q:(i===n-1?0:2)))));
-  const mixed=new Set(sets.map(s=>s.w)).size>1;
-  const low=fs.r<lo||sets.slice(0,-1).some(s=>s.r<lo);
-  const high=fs.r>=hi+3||sets.slice(0,-1).some(s=>s.r>=hi+2);
-  if(!low&&!high&&!mixed)return null;
-  let nw=Math.max(inc,Math.round(best/(1+(lo+3)/30)/inc)*inc); // ~lo+1 reps with 2 in reserve
-  if(low&&!high&&!mixed&&nw>=fs.w)nw=Math.max(inc,fs.w-inc);
-  if(high&&!low&&!mixed&&nw<=fs.w)nw=fs.w+inc;
-  return{nw,k:nw<fs.w?"down":nw>fs.w?"up":"same",low,high,mixed};
+// One rule set for "what next", used for next-session suggestions and the live last-set note.
+// Reps-left assumption when not tapped: 2 on early sets, 0 on the last (failure) set.
+function progFrom(sets,lo,hi,inc,prevRange){
+  const n=sets.length,fin=sets[n-1],first=sets[0];
+  const est=Math.max(...sets.map((s,i)=>e1rm(s.w,s.r+(s.q!=null?s.q:(i===n-1?0:2)))));
+  const tgtW=Math.max(inc,Math.round(est/(1+(lo+3)/30)/inc)*inc); // ~lo+1 reps with 2 in reserve
+  const fmt=x=>x.map(s=>(s.w||"BW")+"×"+s.r).join(", ");
+  if(prevRange)return{t:"rng",W:fin.w,nw:tgtW,m:"NEW REP RANGE → "+tgtW+" lbs",d:"Last time ("+fmt(sets)+") was in the "+prevRange.replace("-","–")+" range; now it's "+lo+"–"+hi+". From those sets, "+tgtW+" lbs should give ~"+(lo+1)+" reps with 2 left.",nr:lo+"-"+(lo+2)};
+  // the weight you settled on: if you corrected it mid-session (first set off, or went heavier) and it worked, continue from it
+  let W=first.w,adj=false;
+  if(fin.w!==first.w){const atF=sets.filter(s=>s.w===fin.w),off=first.r<lo||first.r>=hi+2;if((off||fin.w>first.w)&&atF.every(s=>s.r>=lo-2)){W=fin.w;adj=true}}
+  const ws=sets.filter(s=>s.w===W),f=ws[0],l=ws[ws.length-1],early=ws.length>1?ws.slice(0,-1):ws;
+  const eAvg=early.reduce((a,s)=>a+s.r,0)/early.length;
+  if(!adj&&f.r<lo){const nw=Math.max(inc,Math.min(tgtW,W-inc));return{t:"adj",W,nw,m:"TOO HEAVY ↓ "+nw+" lbs",d:"Your first set was "+f.r+" reps at "+W+" lbs, below "+lo+"–"+hi+" from the start. "+nw+" lbs should put you back in range.",nr:lo+"-"+(lo+2)}}
+  if(!adj&&f.r>=hi+3){const nw=Math.max(tgtW,W+inc);return{t:"inc",W,nw,m:"TOO LIGHT ↑ "+nw+" lbs",d:"Your first set was "+f.r+" reps at "+W+" lbs, well above "+hi+". "+nw+" lbs should put you back in "+lo+"–"+hi+".",nr:lo+"-"+(lo+2)}}
+  if(ws.every(s=>s.r>=hi))return{t:"inc",W,nw:W+inc,m:"INCREASE to "+(W+inc)+" lbs",d:"You hit "+hi+"+ reps on every set at "+W+" lbs. Go up; reps drop to ~"+lo+", then build back up.",nr:lo+"-"+(lo+2)};
+  if(eAvg<lo-1||l.r<lo-2){const nw=Math.max(inc,W-inc);return{t:"adj",W,nw,m:"EASE BACK to "+nw+" lbs",d:"At "+W+" lbs your reps faded well below "+lo+" ("+ws.map(s=>s.r).join(", ")+"). One step lighter keeps you in "+lo+"–"+hi+".",nr:lo+"-"+(lo+2)}}
+  const avg=Math.round(ws.reduce((a,s)=>a+s.r,0)/ws.length),tg=Math.min(Math.max(avg,lo)+1,hi);
+  return{t:"mnt",W,nw:W,m:"BUILD to "+tg+" reps",d:(adj?"You settled on "+W+" lbs mid-session, so keep it. ":"")+"Same "+W+" lbs; aim for "+tg+"+ reps per set. Dropping 1–2 reps on the last (failure) set is normal fatigue and doesn't lower your weight. Hit "+hi+" on every set to go up.",nr:tg+"/set"};
 }
+// last day you trained anything (today excluded)
+function gymGapBefore(date){let m="";for(const ls of Object.values(U.logs))for(const l of ls)if(l.date<date&&l.date>m)m=l.date;return m?daysBetween(m,date):0}
+function lastGymDay(){let m="";const t=today();for(const ls of Object.values(U.logs))for(const l of ls)if(l.date<t&&l.date>m)m=l.date;return m}
 function incOf(id){const c=U.cfg||{};return isDB(id)?(c.db||2.5):(c.mach||5)}
 function getRec(logs,reps,eid){
   const allLogs=logs||[];logs=allLogs.filter(l=>!l.dl);
-  const p=reps.split("-").map(Number),lo=p[0],hi=p[1];
-  const inc=incOf(eid);
-  const down=x=>Math.max(inc,Math.floor(x/inc)*inc),near=x=>Math.max(inc,Math.round(x/inc)*inc);
-  if(!logs||!logs.length)return{t:"new",m:"First time - pick a starting weight",d:"Choose a weight you could do for about "+(lo+2)+" reps, then stop at "+lo+" (2 left in the tank). Tap 'Felt' after you log and the app corrects from there.",nw:null,nr:lo+"-"+hi};
-  const last=logs[logs.length-1],lw=new Set(last.sets.map(s=>s.w)).size>1?last.sets[last.sets.length-1].w:topW(last);
-  const ws=last.sets.filter(s=>s.w===lw),avg=Math.round(ws.reduce((s,x)=>s+x.r,0)/ws.length);
-  const allTop=last.sets.every(s=>s.r>=hi);
-  const best=Math.max(...last.sets.map(s=>e1rm(s.w,s.r)));
-  const tgtW=near(best/(1+(lo+3)/30)); // weight for ~lo+1 reps with 2 in reserve
-  const gap=daysBetween(allLogs[allLogs.length-1].date,today()),fb=last.fb;
-  // 1) Returning after a break
-  if(gap>=14){const f=gap>=42?.8:gap>=28?.85:.9,nw=down(lw*f);return{t:"ret",m:"WELCOME BACK - "+gap+" days off",d:"Start at "+nw+" lbs (~"+Math.round(f*100)+"% of your last "+lw+" lbs), aim for "+lo+"-"+(lo+2)+" reps with 2 left. Strength returns fast; next sessions ramp back from what you do today.",nw,nr:lo+"-"+(lo+2)}}
-  // 3) Weight was off last session (reps out of range, or weight changed mid-session) → recalibrate from every set
-  const sc=sessCal(last.sets,lo,hi,inc);
-  if(sc&&(sc.k!=="same"||sc.mixed)&&!(fb==="heavy"&&sc.k==="up")&&!(fb==="light"&&sc.k==="down"))return{t:"adj",m:(sc.k==="same"?"STAY at ":"RECALIBRATED "+(sc.k==="down"?"↓ ":"↑ "))+sc.nw+" lbs",d:"Last session: "+last.sets.map(s=>s.w+"×"+s.r).join(", ")+(sc.mixed?" (weight changed mid-session)":"")+". From your sets, "+sc.nw+" lbs should give you ~"+(lo+1)+" reps with 2 left on set 1.",nw:sc.nw,nr:lo+"-"+(lo+2)};
-  if(avg<=lo-3||(fb==="heavy"&&avg<lo)){const nw=Math.min(tgtW,lw-inc);return{t:"adj",m:"ADJUSTED DOWN to "+nw+" lbs",d:"Last time: "+avg+" reps at "+lw+" lbs"+(fb==="heavy"?" and it felt too heavy":"")+" — below the "+lo+"-"+hi+" range. Recalculated from your actual performance.",nw:Math.max(inc,nw),nr:lo+"-"+(lo+2)}}
-  if(avg>=hi+3||(fb==="light"&&allTop)){const nw=Math.max(tgtW,lw+inc);return{t:"inc",m:"JUMP to "+nw+" lbs",d:"Last time: "+avg+" reps at "+lw+" lbs"+(fb==="light"?", felt too light":"")+" — well above "+hi+". Recalculated so you land back in "+lo+"-"+hi+".",nw,nr:lo+"-"+(lo+2)}}
-  if(fb==="light"){const nw=lw+inc;return{t:"inc",m:"INCREASE to "+nw+" lbs",d:"You marked it too light. Go up and aim for "+lo+"+ reps.",nw,nr:lo+"-"+(lo+2)}}
-  if(fb==="heavy"){return{t:"mnt",m:"HOLD "+lw+" lbs",d:"Felt heavy last time, so same weight. Aim to match or beat "+avg+" reps with clean form.",nw:lw,nr:avg+"+/set"}}
-  // 4) Standard double progression
-  if(allTop){const nw=lw+inc;return{t:"inc",m:"INCREASE to "+nw+" lbs",d:"Hit "+hi+" reps on all sets! Go up. Reps drop to ~"+lo+", then build back up.",nw,nr:lo+"-"+(lo+2)}}
-  let atW=0;for(let i=logs.length-1;i>=0&&topW(logs[i])===lw;i--)atW++; // consecutive sessions at this weight
-  if(atW>=3)return{t:"mic",m:"MICRO-PROGRESS",d:atW+" sessions in a row at "+lw+" lbs. Add 1 rep to one set or slow the eccentric to 3s.",nw:lw,nr:avg+"->"+(avg+1)};
-  const tgt=Math.min(avg+1,hi);return{t:"mnt",m:"BUILD to "+tgt+" reps",d:"At "+lw+" lbs, avg "+avg+" reps. ~"+Math.max(1,hi-avg)+" session(s) to an increase.",nw:lw,nr:tgt+"/set"}
+  const p=reps.split("-").map(Number),lo=p[0],hi=p[1],inc=incOf(eid);
+  const down=x=>Math.max(inc,Math.floor(x/inc)*inc);
+  if(!logs.length)return{t:"new",m:"First time - pick a starting weight",d:"Choose a weight you could do for about "+(lo+2)+" reps, then stop at "+lo+" (2 left in the tank). Tap 'Felt' after you log and the app corrects from there.",nw:null,nr:lo+"-"+hi};
+  const last=logs[logs.length-1],P=progFrom(last.sets,lo,hi,inc,last.rr&&last.rr!==reps?last.rr:null),W=P.W,fb=last.fb;
+  // Back after a break = time away from the GYM (2+ weeks), not gaps between sessions of one exercise
+  const exGap=daysBetween(allLogs[allLogs.length-1].date,today()),lg=lastGymDay(),away=lg?daysBetween(lg,today()):exGap;
+  if(exGap>=21&&away>=21){const f=away>=56?.85:away>=28?.9:.95,nw=down(W*f);return{t:"ret",m:"WELCOME BACK - "+Math.round(away/7)+" weeks off",d:"Start at "+nw+" lbs (~"+Math.round(f*100)+"% of your last "+W+" lbs) and aim for "+lo+"-"+(lo+2)+" reps with 2 left. Strength comes back fast: if today goes well, the next sessions jump back toward "+W+" lbs.",nw,nr:lo+"-"+(lo+2)}}
+  if(P.t==="rng")return P;
+  // ramp back after a 3+ week break: while below the pre-break weight and the reps look good, close half the gap each session
+  if((P.t==="mnt"||P.t==="inc")&&last.sets[0].r>=lo){for(let j=logs.length-1;j>=Math.max(1,logs.length-4);j--){if(gymGapBefore(logs[j].date)>=21){const W0=progFrom(logs[j-1].sets,lo,hi,inc,null).W;
+    if(W<W0){const nw=Math.min(W0,Math.max(P.nw,W+inc,Math.round((W+(W0-W)/2)/inc)*inc));return{t:"inc",m:"RAMP BACK → "+nw+" lbs",d:"You're coming back from a break (you were at "+W0+" lbs before). Good reps last time, so jump back faster instead of adding one step at a time.",nw,nr:lo+"-"+hi}}break}}}
+  if(fb==="heavy"&&P.nw>W)return{t:"mnt",m:"HOLD "+W+" lbs",d:"You marked it too heavy last time, so no increase yet. Match or beat last time with clean form.",nw:W,nr:P.nr};
+  if(fb==="light"&&P.t==="mnt")return{t:"inc",m:"INCREASE to "+(W+inc)+" lbs",d:"You marked it too light last time. Go up and aim for "+lo+"+ reps.",nw:W+inc,nr:lo+"-"+(lo+2)};
+  if(P.t==="mnt"){let atW=0;for(let i=logs.length-1;i>=0;i--){const q=progFrom(logs[i].sets,lo,hi,inc,null);if(q.W!==W)break;atW++}
+    if(atW>=3)return{t:"mic",m:"MICRO-PROGRESS",d:atW+" sessions in a row at "+W+" lbs. Add 1 rep to one set or slow the lowering to 3 s.",nw:W,nr:P.nr}}
+  return P;
 }
 
 // A log entry belongs to a planned day ("day") and is dated when you did it ("date")
@@ -495,13 +534,13 @@ function autoSave(sid,finish,stay){ // stay = save but keep the card open (tap-o
   if(sets.length){
     if(!U.logs[sid])U.logs[sid]=[];
     const others=U.logs[sid].filter(l=>l!==prev);
-    const entry={date:prev?prev.date:today(),day:dk,sets};if(pl.dl)entry.dl=true;if(prev&&prev.fb)entry.fb=prev.fb;
+    const entry={date:prev?prev.date:(dk<today()?dk:today()),day:dk,sets,rr:pl.r};if(pl.dl)entry.dl=true;if(U.sched[dk]==null&&pl.wi!=null)U.sched[dk]=pl.wi;if(prev&&prev.fb)entry.fb=prev.fb;
     // PR = best estimated strength (e1RM) or heaviest weight ever, vs. every other session
     if(others.length){const pe=Math.max(...others.flatMap(l=>l.sets.map(x=>e1rm(x.w,x.r)))),pw=Math.max(...others.flatMap(l=>l.sets.map(x=>x.w)));
       const bs=sets.reduce((a,x)=>e1rm(x.w,x.r)>e1rm(a.w,a.r)?x:a),ne=e1rm(bs.w,bs.r),nw=Math.max(...sets.map(x=>x.w));
       if(ne>pe+.5||nw>pw){entry.pr=true;entry.prt=nw>pw?`Heaviest ever: ${nw} lbs`:`${bs.w}×${bs.r} — est. 1RM ${Math.round(ne)} lbs (was ${Math.round(pe)})`;if(!(prev&&prev.pr))toast("🏆 New PR — "+EX[sid].name)}}
     U.logs[sid]=others.concat(entry).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
-    if(!prev&&U.lastS!==today()){U.sess=(U.sess||0)+1;U.lastS=today()}
+    if(!prev&&!trainedExcept(dk,sid)){U.sess=(U.sess||0)+1}
     saveU();
   }
   const done=sets.length&&!miss.length&&(finish||(sets.length>=pl.n&&!stay&&!editing[dk+"|"+sid]));
@@ -513,7 +552,7 @@ function autoSave(sid,finish,stay){ // stay = save but keep the card open (tap-o
   saveDraft();return sets.length?sets:null;
 }
 function saveSess(){ // "Finish workout": flush every open exercise, then show the summary
-  const wo=getWO(selDay);if(!wo)return;const dk=dayKey(selDay,0),noW=[];
+  const dk=selDate,wo=woOf(dk);if(!wo)return;const noW=[];
   Object.keys(PLAN).forEach(sid=>{const {miss}=readSets(sid,12,DR[dk]||{});miss.forEach(m=>noW.push(EX[sid].name+" set "+m))});
   if(noW.length){alert("Add a weight for: "+noW.join(", ")+". (Use 0 for bodyweight.)\n\nEverything else is already saved.");return}
   Object.keys(PLAN).forEach(sid=>autoSave(sid,true));saveDraftNow();
@@ -595,8 +634,8 @@ function toast(t){const el=document.createElement("div");el.className="toast";el
 function stopTimer(){clearInterval(timerInt);timerInt=null;wake(false);const el=document.getElementById("timer");if(el)el.classList.remove("on")}
 
 // ── Swap sheet ──
-function showSwap(dk,id,di){
-  const wo=getWO(di);const planned=wo.ex.map(x=>effId(dk,x.id));const cur=effId(dk,id);
+function showSwap(dk,id){
+  const wo=woOf(dk);const planned=wo.ex.map(x=>effId(dk,x.id));const cur=effId(dk,id);
   const opts=(ALT[id]||[]).filter(a=>!planned.includes(a)||a===cur);
   let c=`<div class="ttl">Swap exercise</div><p style="margin:6px 0 14px">${h(EX[id].name)} busy or broken? These hit the same muscles with your gym's equipment. Sets, reps and rest stay the same; each one tracks its own progress.</p>`;
   if(cur!==id)c+=swapOpt(dk,id,id,true,cur);
@@ -627,7 +666,7 @@ function weekSets(off){const a=ymd(mondayOf(off)),b=ymd(new Date(mondayOf(off).g
 function volCard(){
   const now=weekSets(0),prev=weekSets(-1),mx=Math.max(20,...Object.values(now));
   const cmin=Object.entries(U.cardio).filter(([k])=>k>=ymd(mondayOf(0))).reduce((a,[,v])=>a+(v.min||0),0);
-  return `<div class="cl">This week <em>sets per muscle · cardio ${cmin} min</em></div><div class="cd vol">${Object.keys(now).map(g=>{const v=now[g],col=v>=10&&v<=20?"var(--grn)":v>20?"var(--yel)":"var(--ac)";return `<div class="vr"><span>${g}</span><div class="vb"><i class="zone" style="left:${10/mx*100}%;width:${10/mx*100}%"></i><i class="fill" style="width:${Math.min(100,v/mx*100)}%;background:${v?col:"transparent"}"></i></div><b class="num" style="color:${v?col:"var(--dm2)"}">${v}</b><small class="num">${prev[g]}</small></div>`}).join("")}<p style="font-size:11px;color:var(--dm);margin-top:10px;line-height:1.5"><span style="display:inline-block;width:14px;height:8px;border-radius:2px;background:rgba(22,163,74,.15);vertical-align:middle"></span> 10–20 hard sets/week is the usual hypertrophy range. Grey number = last week. Sets on Mon–Sun of this week.</p></div>`;
+  return `<div class="cl">This week <em>sets per muscle · cardio ${cmin} min</em></div><div class="cd vol">${Object.keys(now).map(g=>{const v=now[g],col=v>=10&&v<=20?"var(--grn)":v>20?"var(--yel)":v>=6?"var(--blu)":"var(--ac)";return `<div class="vr"><span>${g}</span><div class="vb"><i class="zone" style="left:${10/mx*100}%;width:${10/mx*100}%"></i><i class="fill" style="width:${Math.min(100,v/mx*100)}%;background:${v?col:"transparent"}"></i></div><b class="num" style="color:${v?col:"var(--dm2)"}">${v}</b><small class="num">${prev[g]}</small></div>`}).join("")}<p style="font-size:11px;color:var(--dm);margin-top:10px;line-height:1.5"><span style="display:inline-block;width:14px;height:8px;border-radius:2px;background:rgba(22,163,74,.15);vertical-align:middle"></span> 10–20 hard sets/week is the usual target; <span style="color:var(--blu);font-weight:700">6–9</span> still builds muscle well at 2–3 sessions. Grey = last week (Mon–Sun).</p></div>`;
 }
 function cardioLog(dk,canLog,plan){const c=U.cardio[dk];
   if(c&&!editing["_cardio|"+dk])return `<div class="logged" style="margin-top:10px"><span class="st num">✓ ${c.min} min${c.hr?" · "+c.hr+" bpm":""}</span>${canLog?`<button class="sb" style="margin-left:auto" onclick="editing['_cardio|${dk}']=1;render()">${IC.edit}Edit</button>`:""}</div>`;
@@ -642,14 +681,13 @@ function bwCard(){
   return `<div class="cl">Body weight <em>weigh in a few mornings a week</em></div><div class="cd"><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px"><div><div class="num" style="font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1">${last?last.w+" lbs":"—"}</div><div style="font-size:12px;color:var(--dm);margin-top:3px">${last?"Last: "+fmtD(last.date):"No entries yet"}${a1&&a0?` · 7-day avg ${a1.toFixed(1)} (${a1-a0>=0?"+":""}${(a1-a0).toFixed(1)} vs. a month ago)`:""}</div></div></div>${sp}<div class="set" style="margin-top:12px"><input class="li" id="bwin" type="number" inputmode="decimal" placeholder="lbs" style="width:100px" aria-label="Body weight"><button class="sb" style="height:40px;padding:0 14px;background:var(--blu);color:#fff;border-color:transparent" onclick="logBw()">Log today</button>${last?`<button class="sb" style="margin-left:auto;height:40px;color:var(--red)" onclick="if(confirm('Delete the ${last.w} lbs entry from ${fmtD(last.date)}?')){U.bw.pop();saveU();render()}">Undo last</button>`:""}</div></div>`;
 }
 function logBw(){const w=parseFloat(document.getElementById("bwin").value);if(!(w>50&&w<700)){alert("Enter your weight in lbs.");return}const td=today();U.bw=U.bw.filter(x=>x.date!==td);U.bw.push({date:td,w});U.bw.sort((a,b)=>a.date<b.date?-1:1);saveU();render();toast("Weight logged ✓")}
-function showDayMenu(di){
-  const dk=dayKey(di,weekOff),nat=natIdx(di),cur=U.ovr[dk]!=null?U.ovr[dk]:nat,sk=!!U.skip[dk],dn=["Mon","Tue","Wed","Thu","Fri"];
-  let c=`<div class="ttl">${dn[di]} ${pd(dk).getDate()} — change plan</div><p style="margin:6px 0 4px">Missed a day or doing them out of order? Pick which workout you'll do on this day. The 2-week rotation itself doesn't move.</p>`;
-  c+=`<button class="opt${sk?" cur":""}" onclick="U.skip['${dk}']?delete U.skip['${dk}']:U.skip['${dk}']=1;saveU();closeAll();render()"><div><b>${sk?"↩ Un-skip this day":"Skip this day"}</b><small>${sk?"Bring the workout back":"Rest day / couldn't make it — nothing to log"}</small></div></button>`;
-  [0,1].forEach(w=>{c+=`<h4>Week ${w+1} workouts</h4>`;WO.slice(w*5,w*5+5).forEach((o,j)=>{const ix=w*5+j;c+=`<button class="opt${ix===cur&&!sk?" cur":""}" onclick="setOvr('${dk}',${ix},${nat})"><div><b>${o.day} · ${h(o.name.split(" - ")[1]||o.name)}</b><small>${ix===nat?"Planned for this day":o.ex.length+" exercises"}</small></div>${ix===cur&&!sk?'<span class="pill" style="color:var(--ac);background:rgba(224,83,47,.12)">CURRENT</span>':""}</button>`})});
-  c+=`<button class="btn ghost" style="margin-top:10px" onclick="closeSheet(this)">Cancel</button>`;openSheet(c);
+function showPick(dk){
+  const cur=woIdx(dk);let c=`<div class="ttl">Pick a workout</div><p style="margin:6px 0 10px">Each week (Mon–Sun) starts with A, then B, then C. On a 2-day week A + B already train every muscle; C is the bonus third session.</p>`;
+  WO.forEach((w,i)=>{const ld=lastDoneOf(i,dk);c+=`<button class="opt${i===cur?" cur":""}" onclick="setPick('${dk}',${i})"><div><b>${w.key} · ${h(w.name)}</b><small>${w.ex.map(e=>h(EX[e.id].name)).join(" · ")}</small><div class="last" style="color:var(--dm)">${ld?"Last done "+fmtD(ld):"Not done yet"}</div></div>${i===cur?'<span class="pill" style="color:var(--ac);background:rgba(224,83,47,.12)">CURRENT</span>':""}</button>`});
+  if(U.sched[dk]!=null&&!trained(dk))c+=`<button class="opt" onclick="setPick('${dk}',null)"><div><b>${dk<today()?"Rest day (no workout)":"↩ Back to the normal order"}</b></div></button>`;
+  c+=`<button class="btn ghost" style="margin-top:8px" onclick="closeSheet(this)">Cancel</button>`;openSheet(c);
 }
-function setOvr(dk,ix,nat){Object.keys(U.swaps).forEach(k=>{if(k.startsWith(dk+"|"))delete U.swaps[k]});if(ix===nat)delete U.ovr[dk];else U.ovr[dk]=ix;delete U.skip[dk];saveU();closeAll();render()}
+function setPick(dk,i){Object.keys(U.swaps).forEach(k=>{if(k.startsWith(dk+"|"))delete U.swaps[k]});if(i==null)delete U.sched[dk];else U.sched[dk]=i;saveU();closeAll();selDate=dk;render()}
 function showSettings(){
   const c=U.cfg,seg=(k,vals,cur,unit)=>`<div class="felt" style="margin-top:6px">${vals.map(v=>`<button class="${cur===v?"on k":""}" onclick="U.cfg.${k}=${typeof v==="string"?`'${v}'`:v};saveU();closeAll();showSettings();render()">${v}${unit||""}</button>`).join("")}</div>`;
   openSheet(`<div class="ttl">Settings</div><h4>Dumbbell jumps (per dumbbell)</h4><p style="font-size:13px">The smallest step between your gym's dumbbells.</p>${seg("db",[2.5,5],c.db||2.5," lbs")}<h4>Machine / stack jumps</h4><p style="font-size:13px">The smallest step on the weight stacks.</p>${seg("mach",[2.5,5,10],c.mach||5," lbs")}<h4>Rest timer sound</h4><p style="font-size:13px">Plays when rest ends (needs the ring/silent switch on). The screen stays awake while the timer runs.</p><div class="felt" style="margin-top:6px"><button class="${c.sound!==false?"on k":""}" onclick="U.cfg.sound=true;saveU();closeAll();showSettings();beep()">On</button><button class="${c.sound===false?"on k":""}" onclick="U.cfg.sound=false;saveU();closeAll();showSettings()">Off</button></div><h4>Training block</h4><p style="font-size:13px">You're in block ${blkNum(today())}, week ${blkWeek(today())} of ${BLK}. Weeks 1–2 base, 3–4 add a set to the first two lifts, week 5 deload. Starting a new block resets to week 1 this week.</p><button class="btn ghost" style="margin-top:8px;font-size:16px" onclick="if(confirm('Start a new training block this week (week 1)?')){U.blk=ymd(mondayOf(0));saveU();closeAll();render();toast('New block started')}">Start new block this week</button><button class="btn ghost" style="margin-top:22px" onclick="closeSheet(this)">Done</button>`);
@@ -686,12 +724,12 @@ function calHint(sid,si){
   const lastSet=si===c.n-1;
   if(lastSet||!rem.length){ // nothing left today → tell what next session will use
     if(si!==Math.max(...calSets(sid).map(x=>x.j)))return;
-    const sc=sessCal(calSets(sid).map(x=>x.q!==undefined?{w:x.w,r:x.r,q:x.q}:{w:x.w,r:x.r}),lo,hi,inc);if(!sc||sc.k==="same")return;
-    const col=sc.k==="down"?"var(--ac)":"var(--grn)";
-    el.innerHTML=`<div class="cal" style="--c:${col}"><b>${sc.k==="down"?"↓":"↑"} Next session: ${sc.nw} lbs</b><p>${sc.mixed?"You changed the weight today, so":sc.low&&!sc.high?"Reps dropped below "+lo+", so":"Reps went well past "+hi+", so"} based on all your sets the app will start you at ${sc.nw} lbs next time.</p></div>`;return;
+    const P=progFrom(calSets(sid).map(x=>x.q!==undefined?{w:x.w,r:x.r,q:x.q}:{w:x.w,r:x.r}),lo,hi,inc,null);if(!P||P.nw===P.W)return;
+    const up=P.nw>P.W,col=up?"var(--grn)":"var(--ac)";
+    el.innerHTML=`<div class="cal" style="--c:${col}"><b>${up?"↑":"↓"} Next session: ${P.nw} lbs</b><p>${h(P.d)}</p></div>`;return;
   }
   const q0=logD[sid+"-"+si+"-q"],rir=q0!==undefined?q0:2,e1=e1rm(w,r+rir),wFor=t=>e1/(1+(t+2)/30);let k=null,nw;
-  if(r<lo){k="down";nw=Math.floor(wFor(lo+1)/inc)*inc;if(nw>=w)nw=w-inc;nw=Math.max(inc,nw)}
+  if(r<(si===0?lo:lo-1)){k="down";nw=Math.floor(wFor(lo+1)/inc)*inc;if(nw>=w)nw=w-inc;nw=Math.max(inc,nw)}
   else if(r>=hi+2){k="up";nw=Math.round(wFor(Math.round((lo+hi)/2))/inc)*inc;if(nw<=w)nw=w+inc}
   if(!k)return;
   const col=k==="down"?"var(--ac)":"var(--grn)",lbl=rem.length>1?"sets "+(rem[0]+1)+"–"+(rem[rem.length-1]+1):(rem[0]===c.n-1?"your last set":"set "+(rem[0]+1));
@@ -710,14 +748,12 @@ const REC_COL={inc:"var(--grn)",del:"var(--blu)",ret:"var(--blu)",new:"var(--ac)
 
 function render(){
   const app=document.getElementById("app");
-  const wo=selDay!==null?getWO(selDay):null;
+  if(!selDate)selDate=today();
+  const dk=selDate,T=today(),wo=woOf(dk),isFut=dk>T,canLog=canLogD(dk),tr=trained(dk);
   const wk=weekNo(0);
-  const days=["Mon","Tue","Wed","Thu","Fri"];
-  const ti=new Date().getDay();const todayI=ti>=1&&ti<=5?ti-1:null;
-  const warmup=wo?WU[selDay%5]:[];
-  const cd=getCardio(wk+weekOff);
+  const warmup=wo?WU[wo.i%WU.length]:[];
+  const cd=getCardio(weekNo(offOf(dk)));
   const wd=getWD();
-  const dk=dayKey(selDay,weekOff),canLog=weekOff===0;
   logD=DR[dk]||(DR[dk]={});
   Object.keys(asT).forEach(k=>{if(asT[k]){clearTimeout(asT[k]);asT[k]=null;autoSave(k,false,true)}}); // flush before PLAN is rebuilt
   let out="";CAL={};PLAN={};
@@ -727,21 +763,26 @@ function render(){
     const bkAge=U.lastBk?daysBetween(U.lastBk,today()):null;
     if(U.sess>=3&&(bkAge===null||bkAge>=30))out+=`<button onclick="tab='progress';render()" class="cd" style="width:100%;text-align:left;display:flex;gap:10px;align-items:center;padding:11px 14px;margin:8px 0 0;color:var(--yel);font-size:13px;font-weight:600;border-color:rgba(250,204,21,.25);background:rgba(250,204,21,.07)">💾 <span style="flex:1">${bkAge===null?"Your logs aren't backed up yet":"Last backup "+bkAge+" days ago"}</span><span style="opacity:.7">Back up →</span></button>`;
     const wl=weekOff===0?"This week":weekOff===1?"Next week":weekOff===-1?"Last week":(weekOff>0?"In "+weekOff+" weeks":Math.abs(weekOff)+" weeks ago");
-    out+=`<div class="wk"><button onclick="weekOff--;render()" aria-label="Previous week">‹</button><div class="t"><b style="color:${weekOff===0?"var(--ac)":"var(--tx)"}">${wl}</b><div class="num">${wd.ms} – ${wd.fs} · Week ${wd.wn}</div></div><button onclick="weekOff++;render()" aria-label="Next week">›</button></div>`;
-    if(weekOff!==0)out+=`<button class="today-link" onclick="weekOff=0;render()">Jump to this week</button>`;
+    out+=`<div class="wk"><button onclick="goWeek(weekOff-1)" aria-label="Previous week">‹</button><div class="t"><b style="color:${weekOff===0?"var(--ac)":"var(--tx)"}">${wl}</b><div class="num">${wd.ms} – ${wd.fs} · Week ${wd.wn}</div></div><button onclick="goWeek(weekOff+1)" aria-label="Next week">›</button></div>`;
+    if(weekOff!==0||dk!==T)out+=`<button class="today-link" onclick="goWeek(0)">Jump to today</button>`;
     out+=`<div class="days">`;
-    days.forEach((d,i)=>{
-      const isT=i===todayI&&weekOff===0,wo2=getWO(i),dk2=dayKey(i,weekOff);
-      const allDone=wo2&&wo2.ex.every(e=>logFor(effId(dk2,e.id),dk2));
-      const skp=U.skip[dk2],mv=U.ovr[dk2]!=null;out+=`<button class="day${selDay===i?" sel":""}${isT?" is-today":""}${skp?" skip":""}" onclick="selDay=${i};render()"><small>${d}${mv?"*":""}</small><b class="num">${pd(dk2).getDate()}</b>${allDone&&!skp?'<span class="dot"></span>':""}</button>`;
-    });
+    {const m=mondayOf(weekOff),DN=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+    for(let i=0;i<7;i++){const d=new Date(m.getFullYear(),m.getMonth(),m.getDate()+i),k=ymd(d),t2=trained(k),isT=k===T,si=U.sched[k];
+      const L=t2?(si!=null&&WO[si]?WO[si].key:"✓"):(isT?WO[woIdx(k)].key:"");
+      out+=`<button class="day${k===dk?" sel":""}${isT?" is-today":""}${k>T?" fut":""}" onclick="selDate='${k}';render()"><small>${DN[i]}</small><b class="num">${d.getDate()}</b><em class="${t2?"done":""}">${L}</em></button>`}}
     out+=`</div>`;
 
+    if(!wo){
+      if(tr){const ent=[];Object.entries(U.logs).forEach(([sid,ls])=>ls.forEach(l=>{if((l.day||l.date)===dk)ent.push([sid,l])}));
+        out+=`<section class="hero"><div class="eyebrow">Logged · previous program</div><h2>${pd(dk).toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})}</h2><p style="font-size:13px;color:var(--dm);margin-top:8px">${ent.length} exercise${ent.length===1?"":"s"}. These still count for progress and suggestions; edit or delete them in Progress.</p></section><div class="cd">${ent.map(([sid,l])=>`<div class="hist"><span style="flex:1;font-weight:600">${l.pr?"🏆 ":""}${h(EX[sid]?EX[sid].name:sid)}</span><span class="num" style="color:var(--dm)">${l.sets.map(x=>(x.w||"BW")+"×"+x.r).join(", ")}</span></div>`).join("")}</div>`}
+      else out+=`<section class="hero" style="text-align:center;padding:26px 18px"><div class="eyebrow">${pd(dk).toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})}</div><h2>Rest day</h2>${canLog?`<p style="font-size:13px;color:var(--dm);margin-top:8px">Trained this day but forgot to log it? Pick the workout you did:</p><div class="pick3">${WO.map((w,i)=>`<button class="sb" onclick="setPick('${dk}',${i})">${w.key}</button>`).join("")}</div>`:`<p style="font-size:13px;color:var(--dm);margin-top:8px">Nothing logged this day.</p>`}</section>`;
+    }
     if(wo){
-      if(U.skip[dk]){out+=`<section class="hero" style="text-align:center;padding:28px 18px"><div class="eyebrow">Skipped</div><h2>Rest day</h2><p style="font-size:13px;color:var(--dm);margin-top:8px">${h(wo.name)} won't be done this day.</p><button class="sb" style="margin-top:14px" onclick="showDayMenu(${selDay})">${IC.swap}Change plan</button></section>`}else{
+      {
       const lm=wo.ex.reduce((s,e)=>s+e.s*45+(e.s-1)*e.rst+30,0)/60;
       const doneArr=wo.ex.map(e=>!!logFor(effId(dk,e.id),dk)),done=doneArr.filter(Boolean).length;
-      out+=`<section class="hero"><button class="sb hero-ch" onclick="showDayMenu(${selDay})">${IC.swap}Change</button><div class="eyebrow">${U.ovr[dk]!=null?"Moved here · "+wo.day+" week "+wo.wk:"Week "+wo.wk+" of 2 · "+h(wo.name.split(" - ")[0])}</div><h2>${h(wo.name.split(" - ")[1]||wo.name)}</h2><div class="blk${wo.blk.dl?" dl":wo.blk.wk>=3?" up":""}">Block ${wo.blk.n} · week ${wo.blk.wk} of ${BLK} · ${wo.blk.dl?"DELOAD — half the sets, no failure":wo.blk.wk>=3?"+1 set on the first two lifts":"base volume"}</div><div class="meta"><span><strong class="num">~${Math.round(5+lm+cd.d)}</strong> min total</span><span><strong>${wo.ex.length}</strong> exercises</span><span><strong class="num">${cd.d}</strong> min cardio</span></div><div class="segs">${doneArr.map((x,k)=>`<i id="sg-${effId(dk,wo.ex[k].id)}" class="${x?"on":""}"></i>`).join("")}</div><div class="segl"><span>Warm-up → Weights → Cardio</span><span class="num" style="color:${done===wo.ex.length?"var(--grn)":done?"var(--tx)":"var(--dm)"};font-weight:700">${done}/${wo.ex.length} done</span></div></section>`;
+      const ld=lastDoneOf(wo.i,dk),eb=tr?"Workout "+wo.key+" · logged":isFut?"Up next · Workout "+wo.key:dk===T?(U.sched[dk]!=null?"Workout "+wo.key+" · your pick":"Today · session "+sessNo(dk)+" this week"):"Logging a missed day · Workout "+wo.key;
+      out+=`<section class="hero">${canLog&&!tr?`<button class="sb hero-ch" onclick="showPick('${dk}')">${IC.swap}Change</button>`:""}<div class="eyebrow">${eb}</div><div class="seq">${WO.map(w=>`<span class="${w.key===wo.key?"on":""}">${w.key}</span>`).join("<i>→</i>")}</div><h2>${h(wo.name)}</h2><div style="font-size:12px;color:var(--dm);margin-top:4px">${ld?"Last time: "+fmtD(ld):"First time doing this workout"}${isFut?" · preview — logging opens on the day":""}</div><div class="blk${wo.blk.dl?" dl":wo.blk.wk>=3?" up":""}">Block ${wo.blk.n} · week ${wo.blk.wk} of ${BLK} · ${wo.blk.dl?"DELOAD — half the sets, no failure":wo.blk.wk>=3?"+1 set on the first two lifts":"base volume"}</div><div class="meta"><span><strong class="num">~${Math.round(5+lm+wo.ex.length*.6)}</strong> min weights</span><span><strong>${wo.ex.length}</strong> exercises</span><span>+ <strong class="num">${cd.d}</strong> min cardio</span></div><div class="segs">${doneArr.map((x,k)=>`<i id="sg-${effId(dk,wo.ex[k].id)}" class="${x?"on":""}"></i>`).join("")}</div><div class="segl"><span>Warm-up → Weights → Cardio</span><span class="num" style="color:${done===wo.ex.length?"var(--grn)":done?"var(--tx)":"var(--dm)"};font-weight:700">${done}/${wo.ex.length} done</span></div></section>`;
 
       out+=`<div class="cl">Posture warm-up <em>~5 min</em></div><div class="cd wu">`;
       warmup.forEach(w=>{const pe=PEX[w.id];out+=`<div class="wu-row"><div class="wu-ic">${IC.posture}</div><div class="n">${pe?h(pe.name):w.id}<div class="num">${h(w.s)}</div></div><button class="sb" onclick="showPosture('${w.id}')">${IC.info}How-to</button></div>`});
@@ -759,7 +800,7 @@ function render(){
         const sugW=rec.nw||lastW||"";
         const mc=MC[sid]||"#e0532f";
 
-        out+=`<article class="ex${isDone?" done":""}"><div class="ex-h"><div class="idx" id="ix-${sid}" style="${tl?"background:rgba(74,222,128,.15);color:var(--grn)":`background:${tint(mc)};color:${mc}`}">${tl?IC.check:i+1}</div><div class="ex-t"><h3>${h(d.name)}</h3><div class="p">${h(d.pri)}</div><div class="tags"><span class="pill" style="color:${mc};background:${tint(mc,"1c")}">${ML[sid]||""}</span>${d.pos?`<span class="pill" style="color:var(--blu);background:rgba(96,165,250,.12)">POSTURE +</span>`:""}</div>${swapped?`<div class="swapped">↔ Swapped for ${h(EX[e.id].name)}</div>`:""}${!isDone&&canLog?`<div class="svd" id="sv-${sid}">${tl?`✓ Saved · ${tl.sets.length}/${e.s} sets`:""}</div>`:""}</div><div class="acts">${ALT[e.id]&&!tl&&weekOff>=0?`<button class="sb" id="swb-${sid}" onclick="showSwap('${dk}','${e.id}',${selDay})">${IC.swap}Swap</button>`:""}<button class="sb" onclick="showModal('${sid}')">${IC.info}How-to</button></div></div>`;
+        out+=`<article class="ex${isDone?" done":""}"><div class="ex-h"><div class="idx" id="ix-${sid}" style="${tl?"background:rgba(74,222,128,.15);color:var(--grn)":`background:${tint(mc)};color:${mc}`}">${tl?IC.check:i+1}</div><div class="ex-t"><h3>${h(d.name)}</h3><div class="p">${h(d.pri)}</div><div class="tags"><span class="pill" style="color:${mc};background:${tint(mc,"1c")}">${ML[sid]||""}</span>${d.pos?`<span class="pill" style="color:var(--blu);background:rgba(96,165,250,.12)">POSTURE +</span>`:""}</div>${swapped?`<div class="swapped">↔ Swapped for ${h(EX[e.id].name)}</div>`:""}${!isDone&&canLog?`<div class="svd" id="sv-${sid}">${tl?`✓ Saved · ${tl.sets.length}/${e.s} sets`:""}</div>`:""}</div><div class="acts">${ALT[e.id]&&!tl&&(canLog||isFut)?`<button class="sb" id="swb-${sid}" onclick="showSwap('${dk}','${e.id}')">${IC.swap}Swap</button>`:""}<button class="sb" onclick="showModal('${sid}')">${IC.info}How-to</button></div></div>`;
         if(d.mode){const nx=wo.ex[i+1],pv=wo.ex[i-1],nd=nx&&EX[effId(dk,nx.id)],pvd=pv&&EX[effId(dk,pv.id)];
           out+=`<div class="mode"><b>⚙ Machine setting</b><span>${h(d.mode)}</span>${nd&&nd.mach===d.mach?`<em>Both today → next exercise uses this same machine in ${h(nd.name.toUpperCase())} mode. Keep your seat, just switch the setting.</em>`:pvd&&pvd.mach===d.mach?`<em>Same machine as the previous exercise — switch it to this setting.</em>`:""}</div>`}
         if(!isDone||U.seat[sid])out+=`<label class="seat"><span>${IC.pin}</span><input type="text" enterkeyhint="done" autocomplete="off" placeholder="${/Dumbbells|Bench/.test(d.machine)&&!/Nautilus|Cybex|Cable|Plate/.test(d.machine)?"Bench angle / notes (e.g. 30°)":"Your settings (e.g. seat 4, pad 2)"}" value="${ha(U.seat[sid]||"")}" onchange="setSeat('${sid}',this.value)"${isDone?" readonly":""}></label>`;
@@ -767,7 +808,7 @@ function render(){
         if(!isDone)out+=`<div class="tip"><i style="background:${col};box-shadow:0 0 10px ${col}"></i><div><b style="color:${col}">${h(rec.m)}</b><p>${h(rec.d)}</p></div></div>`;
         out+=`<div class="note">${h(e.n)}</div>`;
         if(canLog&&!isDone){
-          PLAN[sid]={n:e.s,dk,dl:!!(wo.blk&&wo.blk.dl)};if(!(wo.blk&&wo.blk.dl))CAL[sid]={n:e.s,r:e.r};out+=`<div class="log"><div class="log-h">Log sets <span>· each set saves automatically</span></div>`;
+          PLAN[sid]={n:e.s,dk,dl:!!(wo.blk&&wo.blk.dl),r:e.r,wi:wo.i};if(!(wo.blk&&wo.blk.dl))CAL[sid]={n:e.s,r:e.r};out+=`<div class="log"><div class="log-h">Log sets <span>· each set saves automatically</span></div>`;
           for(let si=0;si<e.s;si++){
             const wk2=sid+"-"+si+"-w",rk=sid+"-"+si+"-r";
             if(logD[wk2]===undefined&&sugW!=="")logD[wk2]=String(sugW);
@@ -788,7 +829,7 @@ function render(){
       out+=`<div class="cl">Cardio <em>always last</em></div><div class="cd" style="display:flex;gap:14px;align-items:flex-start"><div class="wu-ic" style="background:rgba(74,222,128,.12);color:var(--grn);width:38px;height:38px">${IC.timer}</div><div style="flex:1"><div style="font-weight:700;font-size:15px">${h(cd.t)}</div><div class="num" style="font-size:12px;color:var(--dm);margin-top:2px">${cd.d} min · HR ${cd.hr} bpm</div><p style="font-size:13px;color:var(--dm);line-height:1.6;margin-top:8px">${h(cd.i)}</p>${cardioLog(dk,canLog,cd.d)}</div></div>`;
       out+=`<button class="cd" onclick="showSci=!showSci;render()" style="width:100%;display:flex;justify-content:space-between;align-items:center;color:var(--tx);text-align:left;${showSci?"border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0":""}"><span style="font-weight:700;font-size:14px">Training guide</span><span style="font-size:18px;color:var(--dm);transform:rotate(${showSci?90:0}deg);transition:transform 200ms var(--ease-out)">›</span></button>`;
       }
-      if(showSci&&!U.skip[dk])out+=`<div class="cd" style="border-top:none;border-top-left-radius:0;border-top-right-radius:0;margin-top:-1px"><p style="font-size:13px;color:var(--dm);line-height:1.7"><strong style="color:var(--tx)">Effort:</strong> Sets 1–2 stop with 2 reps left. Last set = failure.<br><br><strong style="color:var(--tx)">Progression:</strong> Build reps. Hit the top of the range on all sets → go up one step (set your gym\'s steps in ⚙ Settings). Reps drop, build back up.<br><br><strong style="color:var(--tx)">Adapts to you:</strong> Suggestions come from your latest session. Way off the rep range, or marked too heavy/light → the weight is recalculated from your actual reps. 2+ weeks off → restart at 80–90% and ramp back.<br><br><strong style="color:var(--tx)">Auto-save:</strong> each set saves by itself about a second after you enter it (or as soon as you tap out of the box). The green check appears with the first saved set; Finish workout just shows your summary.<br><br><strong style="color:var(--tx)">Mid-session check:</strong> after each set, if your reps fall below the range (too heavy) or way above it (too light), the app suggests a corrected weight for your remaining sets — tap Apply.<br><br><strong style="color:var(--tx)">Busy machine:</strong> tap Swap for an equivalent exercise.<br><br><strong style="color:var(--tx)">Training blocks:</strong> 5 weeks. Weeks 1–2 base volume, weeks 3–4 one extra set on the first two lifts, week 5 deload (half the sets, ~90% weight, no failure). Deload sessions don\'t count toward progression.<br><br><strong style="color:var(--blu)">Posture:</strong> Rows + rear delts + warm-ups.</p></div>`;
+      if(showSci)out+=`<div class="cd" style="border-top:none;border-top-left-radius:0;border-top-right-radius:0;margin-top:-1px"><p style="font-size:13px;color:var(--dm);line-height:1.7"><strong style="color:var(--tx)">Schedule:</strong> weeks run Monday–Sunday. Your 1st session of the week is A, the 2nd is B, the 3rd is C, whatever days you go. On 2-day weeks A + B already train every muscle; C adds extra volume. Aim for a rest day between sessions. Tap Change to pick a different one; tap a past day (up to 7 days back) to log a workout you forgot.<br><br><strong style="color:var(--tx)">Effort:</strong> Early sets stop with 2 reps left. Last set = failure.<br><br><strong style="color:var(--tx)">Progression:</strong> Each exercise has one rep range. Hit the top of it on every set → go up one step (set your gym\'s steps in ⚙ Settings). Otherwise keep the weight and add reps. Losing 1–2 reps on the failure set is normal and never lowers your weight.<br><br><strong style="color:var(--tx)">When it lowers the weight:</strong> only if your first set was already below the range, or your reps faded well below it. Days between sessions never count against you. Only time away from the gym does: under 3 weeks no change (strength holds ~4 weeks); 3–4 weeks → 95%, 4–8 weeks → 90%, 8+ weeks → 85% for the first session, then it jumps back toward your old weight as soon as your reps look good.<br><br><strong style="color:var(--tx)">Auto-save:</strong> each set saves by itself about a second after you enter it. Finish workout just shows your summary.<br><br><strong style="color:var(--tx)">Busy machine:</strong> tap Swap for an equivalent exercise.<br><br><strong style="color:var(--tx)">Training blocks:</strong> 5 weeks. Weeks 1–2 base, weeks 3–4 one extra set on the first two lifts, week 5 deload (half the sets, ~90% weight, no failure).<br><br><strong style="color:var(--blu)">Posture:</strong> Rows + rear delts + warm-ups.</p></div>`;
     }
   } else {
     const ids=Object.keys(U.logs).filter(id=>EX[id]),ts=Object.values(U.logs).reduce((a,l)=>a+l.reduce((b,e)=>b+e.sets.length,0),0);

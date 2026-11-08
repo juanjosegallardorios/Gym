@@ -1,6 +1,6 @@
 // Offline support: the app opens even with no signal at the gym.
 // HTML = network-first (updates show up right away when online); everything else = cache + refresh in background.
-const CACHE = 'gym-v7.10';
+const CACHE = 'gym-v8.2';
 const CORE = ['./', 'index.html', 'images.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
