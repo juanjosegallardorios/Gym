@@ -194,6 +194,8 @@ input[type=number]{-moz-appearance:textfield}
 .pick3{display:flex;justify-content:center;gap:8px;margin-top:12px}
 .pick3 .sb{min-width:56px;justify-content:center;font-size:15px;padding:10px 14px}
 .calh:empty{display:none}
+.gear{margin-top:10px;padding:12px;border-radius:14px;background:color-mix(in srgb,var(--grn) 8%,#fff);border:1px solid color-mix(in srgb,var(--grn) 35%,transparent)}.gear b{font-size:14px}.gear p{font-size:12px;color:var(--dm);margin:4px 0 10px}.gb{display:flex;gap:8px}.gb button{flex:1;padding:11px 8px;border-radius:12px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--tx)}.gb .yes{background:var(--grn);border-color:var(--grn);color:#fff}.gb button:active{transform:scale(.97)}
+.gna{margin-top:8px;font-size:11px;color:var(--dm);display:flex;flex-wrap:wrap;gap:6px;align-items:center}.gna button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:3px 9px;font:inherit;font-size:11px;color:var(--dm)}
 .cal{margin:0 0 9px 42px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--c) 8%,#fff);border:1px solid color-mix(in srgb,var(--c) 28%,transparent)}
 .cal b{display:block;font-size:13px;font-weight:800;color:var(--c)}
 .cal p{font-size:12px;color:var(--dm);line-height:1.5;margin-top:2px}
@@ -240,8 +242,8 @@ input[type=number]{-moz-appearance:textfield}
 #timer .ring{width:36px;height:36px;transform:rotate(-90deg)}
 #timer .ring circle{fill:none;stroke-width:4}
 #timer .tt{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.06em;min-width:58px}
-#timer button{height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line2);background:var(--s3);color:var(--tx);font-size:12px;font-weight:700;transition:transform 120ms var(--ease-out)}
-#timer button:active{transform:scale(.94)}
+#timer button{height:42px;min-width:56px;padding:0 14px;touch-action:manipulation;-webkit-user-select:none;user-select:none;border-radius:999px;border:1px solid var(--line2);background:var(--s3);color:var(--tx);font-size:12px;font-weight:700;transition:transform 120ms var(--ease-out)}
+#timer button:active,#timer button.pr{transform:scale(.94)}
 #timer button.k{background:var(--ac);border-color:transparent;color:#fff}
 
 /* ── progress tab ── */
@@ -400,9 +402,9 @@ let U,tab="today",selDate=null,logD={},timerSec=0,timerInt=null,weekOff=0,showSc
 
 function ld(){try{return JSON.parse(localStorage.getItem(SK))||{}}catch{return{}}}
 function sv(d){try{localStorage.setItem(SK,JSON.stringify(d))}catch(e){alert("Could not save: "+e.message)}}
-function normU(){if(!U.logs)U.logs={};if(!U.start)U.start=new Date().toISOString();["swaps","cfg","seat","ovr","skip","cardio","sched"].forEach(k=>{if(!U[k]||typeof U[k]!=="object")U[k]={}});if(!Array.isArray(U.bw))U.bw=[];if(!U.blk)U.blk=ymd(mondayOf(0));
+function normU(){if(!U.logs)U.logs={};if(!U.start)U.start=new Date().toISOString();["swaps","cfg","seat","ovr","skip","cardio","sched","gear","gq"].forEach(k=>{if(!U[k]||typeof U[k]!=="object")U[k]={}});if(!Array.isArray(U.bw))U.bw=[];if(!U.blk)U.blk=ymd(mondayOf(0));
   Object.keys(U.logs).forEach(k=>{if(!Array.isArray(U.logs[k])){delete U.logs[k];return}U.logs[k]=U.logs[k].filter(l=>l&&l.date&&Array.isArray(l.sets)&&l.sets.length);if(!U.logs[k].length)delete U.logs[k]});
-  migRot();migrate73();migRR();pruneSwaps();saveU()}
+  migRot();migrate73();migRR();pruneSwaps();pruneGq();saveU()}
 function init(){const a=ld();if(!a._u)a._u={name:"Juan Jose",logs:{},sess:0,start:new Date().toISOString()};sv(a);U=a._u;normU();loadDrafts();selDate=today();weekOff=0;try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}render()}
 function migrate73(){
   if(U.mig73)return;const pf=U.logs.pec_fly||[],keep=[],rd=[];
@@ -507,6 +509,39 @@ function getRec(logs,reps,eid){
     if(atW>=3)return{t:"mic",m:"MICRO-PROGRESS",d:atW+" sessions in a row at "+W+" lbs. Add 1 rep to one set or slow the lowering to 3 s.",nw:W,nr:P.nr}}
   return P;
 }
+
+// ── Available weights: the app never assumes a weight exists — it asks before every increase ──
+function gearOf(eid){return U.gear[eid]||(U.gear[eid]={na:[]})}
+const r1=x=>Math.round(x*100)/100;
+function isNA(eid,w){return gearOf(eid).na.includes(r1(w))}
+function availUp(eid,w,inc){let n=r1(w),k=0;while(isNA(eid,n)&&k++<40)n=r1(n+inc);return n}
+function availDown(eid,w,inc){let n=r1(w),k=0;while(isNA(eid,n)&&n-inc>0&&k++<40)n=r1(n-inc);return n}
+function estOf(l){const n=l.sets.length;return Math.max(...l.sets.map((x,i)=>e1rm(x.w,x.r+(x.q!=null?x.q:(i===n-1?0:2)))))}
+function gearAdj(rec,logs,reps,eid){
+  if(!rec||!rec.nw)return rec;const L=(logs||[]).filter(l=>!l.dl);if(!L.length)return rec;
+  const last=L[L.length-1],W=rec.W!=null?rec.W:topW(last),inc=incOf(eid),p=reps.split("-").map(Number),lo=p[0],hi=p[1],est=estOf(last);
+  const repsAt=w=>Math.floor(30*(est/w-1))-2; // reps you'd get with ~2 left
+  if(rec.nw>W){
+    const n=availUp(eid,rec.nw,inc);if(n===r1(rec.nw))return Object.assign({},rec,{up:n,W});
+    const sk=gearOf(eid).na.filter(x=>x>W&&x<n).sort((a,b)=>a-b).join(", ");
+    const er=repsAt(n);
+    if(er>=lo-3)return{t:"inc",W,nw:n,up:n,m:"NEXT AVAILABLE: "+n+" lbs",d:"You don't have "+sk+" lbs, so the next step is "+n+". Expect about "+Math.max(er,1)+" reps at first — that's fine, still muscle-building range. Stay at "+n+" and build back up to "+lo+"–"+hi+".",nr:Math.max(er,lo-3)+"+ reps"};
+    const need=Math.ceil(30*(n*(1+(lo-1)/30)/W-1));
+    return{t:"mnt",W,nw:W,m:"BUILD PAST "+hi+" — next is "+n+" lbs",d:"The next weight up ("+n+" lbs, since "+sk+" isn't available) is a big jump from "+W+". Stay at "+W+" and keep adding reps beyond "+hi+" (anything up to ~30 still builds muscle). Once you reach about "+need+" reps per set, "+n+" lbs will land you near "+(lo-2)+"–"+lo+" reps.",nr:need+" reps/set"};
+  }
+  if(rec.nw<W){
+    const n=availDown(eid,rec.nw,inc);if(n===r1(rec.nw)||n>=W)return rec;
+    // the lighter weight isn't there either; only drop to n if the reps were clearly too low
+    const f=last.sets[0];
+    if(rec.t==="ret"||f.r<lo-3)return Object.assign({},rec,{nw:n,m:rec.m.replace(/[\d.]+ lbs/,n+" lbs"),d:rec.d+" ("+r1(rec.nw)+" lbs isn't available, so "+n+".)"});
+    return{t:"mnt",W,nw:W,m:"STAY AT "+W+" lbs",d:"One step lighter ("+r1(rec.nw)+") isn't available, so keep "+W+" lbs. Reps a little under "+lo+" are fine here — build them back up session by session.",nr:Math.max(lo-3,1)+"+ reps"};
+  }
+  return rec;
+}
+function gearYes(sid,dk,n){U.gq[dk+"|"+sid]=n;const D=DR[dk]||{},t=D.__t||{};for(let i=0;i<12;i++){const k=sid+"-"+i+"-w";if(!t[k]&&!(parseInt(D[sid+"-"+i+"-r"])>0))D[k]=String(n)}saveDraftNow();saveU();render()}
+function gearNo(sid,dk,n){const g=gearOf(sid);if(!g.na.includes(r1(n)))g.na.push(r1(n));delete U.gq[dk+"|"+sid];saveU();toast(n+" lbs marked as not available");render()}
+function gearUndo(sid,n){const g=gearOf(sid);g.na=g.na.filter(x=>x!==r1(n));saveU();render()}
+function pruneGq(){const t=today();Object.keys(U.gq||{}).forEach(k=>{if(daysBetween(k.split("|")[0],t)>14)delete U.gq[k]})}
 
 // A log entry belongs to a planned day ("day") and is dated when you did it ("date")
 function logFor(sid,dk){return (U.logs[sid]||[]).find(l=>(l.day||l.date)===dk)}
@@ -614,8 +649,22 @@ function closeAll(){document.querySelectorAll(".mo .ms").forEach(closeSheet)}
 let timerEnd=0,timerTotal=0;
 function ensureTimer(){
   if(document.getElementById("timer"))return;
-  document.body.insertAdjacentHTML("beforeend",`<div id="timer" role="timer"><svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" stroke="rgba(0,0,0,.1)"/><circle class="arc" cx="18" cy="18" r="15" stroke="var(--ac)" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="0"/></svg><span class="tt num">0:00</span><button onclick="addTime(15)">+15s</button><button class="k" onclick="stopTimer()">Skip</button></div>`);
+  document.body.insertAdjacentHTML("beforeend",`<div id="timer" role="timer"><svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" stroke="rgba(0,0,0,.1)"/><circle class="arc" cx="18" cy="18" r="15" stroke="var(--ac)" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="0"/></svg><span class="tt num">0:00</span><button type="button" data-t="add">+15s</button><button type="button" class="k" data-t="skip">Skip</button></div>`);
+  const el=document.getElementById("timer");
+  // iPhone: act on the touch itself (before the keyboard closes and shifts the screen), and keep focus in the reps box
+  const act=(e,b)=>{const now=Date.now();if(now-(+b.dataset.at||0)<400)return;b.dataset.at=now;b.dataset.t==="add"?addTime(15):stopTimer()}; // a touch also fires a click: count it once
+  el.querySelectorAll("button").forEach(b=>{
+    b.addEventListener("touchstart",e=>{e.preventDefault();b.classList.add("pr")},{passive:false});
+    b.addEventListener("touchend",e=>{e.preventDefault();b.classList.remove("pr");act(e,b)},{passive:false});
+    b.addEventListener("touchcancel",()=>b.classList.remove("pr"));
+    b.addEventListener("mousedown",e=>e.preventDefault());
+    b.addEventListener("click",e=>act(e,b))});
+  placeTimer();
 }
+// keep the pill just above the keyboard when it's open
+function placeTimer(){const el=document.getElementById("timer"),vv=window.visualViewport;if(!el)return;if(!vv){el.style.bottom="";return}
+  const kb=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);el.style.bottom=kb>80?(kb+12)+"px":""}
+if(window.visualViewport){visualViewport.addEventListener("resize",placeTimer);visualViewport.addEventListener("scroll",placeTimer)}
 let actx=null,wlock=null;
 function audio(){try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume()}catch(e){}return actx}
 function beep(){const a=audio();if(!a||U.cfg.sound===false)return;const t=a.currentTime+.02;[0,.22,.44].forEach((d,i)=>{const o=a.createOscillator(),g=a.createGain();o.type="sine";o.frequency.value=i===2?1320:880;g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.5,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.18);o.connect(g);g.connect(a.destination);o.start(t+d);o.stop(t+d+.2)})}
@@ -724,7 +773,7 @@ function calHint(sid,si){
   const lastSet=si===c.n-1;
   if(lastSet||!rem.length){ // nothing left today → tell what next session will use
     if(si!==Math.max(...calSets(sid).map(x=>x.j)))return;
-    const P=progFrom(calSets(sid).map(x=>x.q!==undefined?{w:x.w,r:x.r,q:x.q}:{w:x.w,r:x.r}),lo,hi,inc,null);if(!P||P.nw===P.W)return;
+    const cs=calSets(sid).map(x=>x.q!==undefined?{w:x.w,r:x.r,q:x.q}:{w:x.w,r:x.r});const P=gearAdj(progFrom(cs,lo,hi,inc,null),[{sets:cs}],lo+"-"+hi,sid);if(!P||P.nw===P.W)return;
     const up=P.nw>P.W,col=up?"var(--grn)":"var(--ac)";
     el.innerHTML=`<div class="cal" style="--c:${col}"><b>${up?"↑":"↓"} Next session: ${P.nw} lbs</b><p>${h(P.d)}</p></div>`;return;
   }
@@ -732,6 +781,7 @@ function calHint(sid,si){
   if(r<(si===0?lo:lo-1)){k="down";nw=Math.floor(wFor(lo+1)/inc)*inc;if(nw>=w)nw=w-inc;nw=Math.max(inc,nw)}
   else if(r>=hi+2){k="up";nw=Math.round(wFor(Math.round((lo+hi)/2))/inc)*inc;if(nw<=w)nw=w+inc}
   if(!k)return;
+  nw=k==="up"?availUp(sid,nw,inc):availDown(sid,nw,inc);if(k==="down"&&nw>=w)return;
   const col=k==="down"?"var(--ac)":"var(--grn)",lbl=rem.length>1?"sets "+(rem[0]+1)+"–"+(rem[rem.length-1]+1):(rem[0]===c.n-1?"your last set":"set "+(rem[0]+1));
   const applied=rem.every(j=>num(logD[sid+"-"+j+"-w"])===nw);
   el.innerHTML=`<div class="cal" style="--c:${col}"><b>${k==="down"?"↓ Too heavy — drop":"↑ Too light — go up"} to ${nw} lbs</b><p>${r} reps at ${w} lbs is ${k==="down"?"below":"well above"} the ${lo}–${hi} range. ${nw} lbs should land you back in range for ${lbl}.</p>${applied?`<div class="ok">✓ Applied to ${lbl}</div>`:`<button class="sb" onclick="calApply('${sid}',${si},${nw})">Apply to ${lbl}</button>`}</div>`;
@@ -793,19 +843,22 @@ function render(){
         const sid=effId(dk,e.id),swapped=sid!==e.id;
         const d=EX[sid],logs=U.logs[sid]||[];
         const tl=logFor(sid,dk);const isDone=!!tl&&!editing[dk+"|"+sid]&&!(canLog&&draftReps(sid));
-        const prior=logs.filter(l=>l!==tl);let rec=getRec(isDone?logs:prior,e.r,sid);
-        if(wo.blk&&wo.blk.dl&&!isDone&&rec.nw){const st=incOf(sid),dw=Math.max(st,Math.floor(rec.nw*.9/st)*st);rec={t:"del",m:"DELOAD WEEK — "+dw+" lbs",d:"Easy week: half the sets at ~90% weight, stopping 3–4 reps short. No failure. This lets fatigue drop so the next block starts strong.",nw:dw,nr:"easy reps"}}
+        const prior=logs.filter(l=>l!==tl);let rec=gearAdj(getRec(isDone?logs:prior,e.r,sid),isDone?logs:prior,e.r,sid);
+        if(wo.blk&&wo.blk.dl&&!isDone&&rec.nw){const st=incOf(sid),dw=availDown(sid,Math.max(st,Math.floor(rec.nw*.9/st)*st),st);rec={t:"del",m:"DELOAD WEEK — "+dw+" lbs",d:"Easy week: half the sets at ~90% weight, stopping 3–4 reps short. No failure. This lets fatigue drop so the next block starts strong.",nw:dw,nr:"easy reps"}}
         const col=REC_COL[rec.t]||"var(--yel)";
         const lastW=prior.length?topW(prior[prior.length-1]):"";
-        const sugW=rec.nw||lastW||"";
+        const askUp=!isDone&&canLog&&rec.up&&lastW!==""&&rec.nw>lastW&&U.gq[dk+"|"+sid]!==rec.nw;
+        const sugW=(askUp?lastW:rec.nw)||lastW||"";
         const mc=MC[sid]||"#e0532f";
 
         out+=`<article class="ex${isDone?" done":""}"><div class="ex-h"><div class="idx" id="ix-${sid}" style="${tl?"background:rgba(74,222,128,.15);color:var(--grn)":`background:${tint(mc)};color:${mc}`}">${tl?IC.check:i+1}</div><div class="ex-t"><h3>${h(d.name)}</h3><div class="p">${h(d.pri)}</div><div class="tags"><span class="pill" style="color:${mc};background:${tint(mc,"1c")}">${ML[sid]||""}</span>${d.pos?`<span class="pill" style="color:var(--blu);background:rgba(96,165,250,.12)">POSTURE +</span>`:""}</div>${swapped?`<div class="swapped">↔ Swapped for ${h(EX[e.id].name)}</div>`:""}${!isDone&&canLog?`<div class="svd" id="sv-${sid}">${tl?`✓ Saved · ${tl.sets.length}/${e.s} sets`:""}</div>`:""}</div><div class="acts">${ALT[e.id]&&!tl&&(canLog||isFut)?`<button class="sb" id="swb-${sid}" onclick="showSwap('${dk}','${e.id}')">${IC.swap}Swap</button>`:""}<button class="sb" onclick="showModal('${sid}')">${IC.info}How-to</button></div></div>`;
         if(d.mode){const nx=wo.ex[i+1],pv=wo.ex[i-1],nd=nx&&EX[effId(dk,nx.id)],pvd=pv&&EX[effId(dk,pv.id)];
           out+=`<div class="mode"><b>⚙ Machine setting</b><span>${h(d.mode)}</span>${nd&&nd.mach===d.mach?`<em>Both today → next exercise uses this same machine in ${h(nd.name.toUpperCase())} mode. Keep your seat, just switch the setting.</em>`:pvd&&pvd.mach===d.mach?`<em>Same machine as the previous exercise — switch it to this setting.</em>`:""}</div>`}
         if(!isDone||U.seat[sid])out+=`<label class="seat"><span>${IC.pin}</span><input type="text" enterkeyhint="done" autocomplete="off" placeholder="${/Dumbbells|Bench/.test(d.machine)&&!/Nautilus|Cybex|Cable|Plate/.test(d.machine)?"Bench angle / notes (e.g. 30°)":"Your settings (e.g. seat 4, pad 2)"}" value="${ha(U.seat[sid]||"")}" onchange="setSeat('${sid}',this.value)"${isDone?" readonly":""}></label>`;
-        out+=`<div class="rx"><div style="flex:1"><div class="big" style="color:var(--tx)">${e.s} × ${h(e.r).replace("-","–")}</div><div class="lbl" style="margin-top:4px">Rest ${e.rst}s${sid==="db_split_squat"?" · reps per leg":""}</div></div><div class="nx"><div class="lbl">${isDone?"Next time":"Today"}</div><b class="num" style="color:${col}">${rec.nw?rec.nw+" lbs":"Pick weight"}</b>${rec.nr?`<div class="num" style="font-size:11px;color:var(--dm)">${h(String(rec.nr))}</div>`:""}</div></div>`;
+        out+=`<div class="rx"><div style="flex:1"><div class="big" style="color:var(--tx)">${e.s} × ${h(e.r).replace("-","–")}</div><div class="lbl" style="margin-top:4px">Rest ${e.rst}s${sid==="db_split_squat"?" · reps per leg":""}</div></div><div class="nx"><div class="lbl">${isDone?"Next time":"Today"}</div>${askUp?`<b class="num" style="color:var(--tx)">${lastW} lbs</b><div class="num" style="font-size:11px;color:var(--grn);font-weight:700">${rec.nw} if you have it</div>`:`<b class="num" style="color:${col}">${rec.nw?rec.nw+" lbs":"Pick weight"}</b>${rec.nr?`<div class="num" style="font-size:11px;color:var(--dm)">${h(String(rec.nr))}</div>`:""}`}</div></div>`;
         if(!isDone)out+=`<div class="tip"><i style="background:${col};box-shadow:0 0 10px ${col}"></i><div><b style="color:${col}">${h(rec.m)}</b><p>${h(rec.d)}</p></div></div>`;
+        if(askUp)out+=`<div class="gear"><b>Going up — do you have ${rec.nw} lbs?</b><p>The app only increases once you confirm the weight exists. Until then your sets stay at ${lastW} lbs.</p><div class="gb"><button class="yes" onclick="gearYes('${sid}','${dk}',${rec.nw})">Yes, use ${rec.nw}</button><button onclick="gearNo('${sid}','${dk}',${rec.nw})">No, I don't have it</button></div></div>`;
+        else if(!isDone&&canLog){const g=(U.gear[sid]||{}).na||[];if(g.length)out+=`<div class="gna">Not available: ${g.slice().sort((a,b)=>a-b).map(x=>`<button onclick="gearUndo('${sid}',${x})" aria-label="Undo ${x} not available">${x} ✕</button>`).join("")}</div>`}
         out+=`<div class="note">${h(e.n)}</div>`;
         if(canLog&&!isDone){
           PLAN[sid]={n:e.s,dk,dl:!!(wo.blk&&wo.blk.dl),r:e.r,wi:wo.i};if(!(wo.blk&&wo.blk.dl))CAL[sid]={n:e.s,r:e.r};out+=`<div class="log"><div class="log-h">Log sets <span>· each set saves automatically</span></div>`;
